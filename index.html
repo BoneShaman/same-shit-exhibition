@@ -64,9 +64,13 @@
     border:1px solid rgba(214,255,74,.4);padding:9px 15px;cursor:pointer}
   @media (max-width:560px){
     #notepaper{padding:30px 24px}
-    #placard{left:16px;right:16px;bottom:84px;max-width:none}
-    #placard h2{font-size:24px}
-    #placard .desc{font-size:13px;line-height:1.55}
+    #placard{left:0;right:0;bottom:0;max-width:none;padding:54px 18px 16px;
+      background:linear-gradient(180deg,rgba(2,2,4,0),rgba(2,2,4,.92) 36%)}
+    #placard h2{font-size:23px;margin-bottom:5px}
+    #placard .med{display:none}
+    #placard .artist{margin-bottom:10px}
+    #placard .desc{font-size:12.5px;line-height:1.55}
+    #placard .cta{margin-top:12px;font-size:9.5px}
   }
 
   /* ---------- placard (focus mode) ---------- */
@@ -1276,9 +1280,11 @@ document.addEventListener('mousemove',e=>{
   }
 });
 cv.addEventListener('click',()=>{
-  if(!started)return;
+  // touch taps are fully handled in touchend; the browser's synthetic click
+  // ~300ms later must not re-trigger anything (it was re-communing on exit)
+  if(!started||isTouch)return;
   if(phoneOpen||noteOpen)return;
-  if(document.pointerLockElement!==cv&&!isTouch){cv.requestPointerLock();return;}
+  if(document.pointerLockElement!==cv){cv.requestPointerLock();return;}
   if(focusIdx<0){if(nearNote())openNote();else{const f=nearFocus();if(f>=0)enterFocus(f);}}
 });
 document.addEventListener('pointerlockchange',()=>{
@@ -1292,21 +1298,71 @@ addEventListener('contextmenu',e=>e.preventDefault());
 
 // touch: left half joystick, right half look.
 // while communing, any touch is a gesture: swipe up = phone, tap = step back.
-const touch={l:null,r:null,lx:0,ly:0,mx:0,my:0,tap:0,jx:0,jy:0,ry0:0,moved:0,consumed:false};
+const touch={l:null,r:null,lx:0,ly:0,ltap:0,lmoved:0,mx:0,my:0,tap:0,jx:0,jy:0,ry0:0,moved:0,consumed:false};
 if(isTouch)document.getElementById('touchui').style.display='block';
+
+// a tap means what it points at: cast a ray through the tapped pixel
+function tapRay(sx,sy){
+  const asp=innerWidth/innerHeight;
+  const tf=Math.tan(((asp<1)?88:72)*Math.PI/360);
+  const nx=(2*sx/innerWidth-1)*tf*asp, ny=(1-2*sy/innerHeight)*tf;
+  const cy=Math.cos(player.yaw),syw=Math.sin(player.yaw),cp=Math.cos(player.pitch),sp=Math.sin(player.pitch);
+  const fx=syw*cp,fy=sp,fz=-cy*cp, rx=cy,rz=syw;
+  const ux=-rz*fy, uy=rz*fx-rx*fz, uz=rx*fy;
+  let dx=rx*nx+ux*ny+fx, dyy=uy*ny+fy, dz=rz*nx+uz*ny+fz;
+  const dl=Math.hypot(dx,dyy,dz);dx/=dl;dyy/=dl;dz/=dl;
+  // the folded paper on the floor
+  if(dyy<-0.02){
+    const t=(0.022-EYE)/dyy;
+    if(t>0&&t<6){
+      const hx=player.x+dx*t,hz=player.z+dz*t;
+      if(hx>-1.05&&hx<-0.42&&hz>40.86&&hz<41.42)return 'note';
+    }
+  }
+  // the three works, on their wall planes
+  const planes=[
+    {a:'x',v:-5.90,lo:13.7,hi:16.3,y0:0.55,y1:3.86,idx:0},
+    {a:'x',v: 5.90,lo:25.7,hi:28.3,y0:0.55,y1:3.86,idx:1},
+    {a:'z',v:44.895,lo:-1.6,hi:1.6,y0:0.5,y1:4.56,idx:2}];
+  for(const p of planes){
+    const dc=p.a==='x'?dx:dz, pc=p.a==='x'?player.x:player.z;
+    if(Math.abs(dc)<1e-4)continue;
+    const t=(p.v-pc)/dc;if(t<0.3||t>7)continue;
+    const hy=EYE+dyy*t;if(hy<p.y0-0.25||hy>p.y1+0.25)continue;
+    const o=p.a==='x'?player.z+dz*t:player.x+dx*t;
+    if(o>p.lo-0.25&&o<p.hi+0.25)return p.idx;
+  }
+  return null;
+}
+function handleTap(sx,sy){
+  if(noteOpen){closeNote();return;}
+  if(focusIdx>=0){exitFocus();return;}
+  const hit=tapRay(sx,sy);
+  if(hit==='note'){openNote();return;}
+  if(hit!==null){enterFocus(hit);return;}
+  if(nearNote()){openNote();return;}
+  const f=nearFocus();if(f>=0)enterFocus(f);
+}
+
 addEventListener('touchstart',e=>{
   if(!started||phoneOpen||noteOpen)return;
   for(const t of e.changedTouches){
-    if(focusIdx<0&&t.clientX<innerWidth/2&&touch.l===null){touch.l=t.identifier;touch.lx=t.clientX;touch.ly=t.clientY;}
-    else if(touch.r===null){touch.r=t.identifier;touch.mx=t.clientX;touch.my=t.clientY;
-      touch.ry0=t.clientY;touch.tap=performance.now();touch.moved=0;touch.consumed=false;}
+    if(focusIdx<0&&t.clientX<innerWidth/2&&touch.l===null){
+      touch.l=t.identifier;touch.lx=t.clientX;touch.ly=t.clientY;
+      touch.ltap=performance.now();touch.lmoved=0;
+    }else if(touch.r===null){
+      touch.r=t.identifier;touch.mx=t.clientX;touch.my=t.clientY;
+      touch.ry0=t.clientY;touch.tap=performance.now();touch.moved=0;touch.consumed=false;
+    }
   }
 },{passive:true});
 addEventListener('touchmove',e=>{
   if(!started||phoneOpen||noteOpen)return;
   for(const t of e.changedTouches){
-    if(t.identifier===touch.l&&focusIdx<0){touch.jx=clamp((t.clientX-touch.lx)/60,-1,1);touch.jy=clamp((t.clientY-touch.ly)/60,-1,1);}
-    else if(t.identifier===touch.r){
+    if(t.identifier===touch.l&&focusIdx<0){
+      touch.jx=clamp((t.clientX-touch.lx)/60,-1,1);touch.jy=clamp((t.clientY-touch.ly)/60,-1,1);
+      touch.lmoved=Math.max(touch.lmoved,Math.abs(t.clientX-touch.lx)+Math.abs(t.clientY-touch.ly));
+    }else if(t.identifier===touch.r){
       touch.moved+=Math.abs(t.clientX-touch.mx)+Math.abs(t.clientY-touch.my);
       if(focusIdx>=0){ // communing: pull the rectangle from your pocket
         if(!touch.consumed&&touch.ry0-t.clientY>60){touch.consumed=true;openPhone();}
@@ -1320,9 +1376,14 @@ addEventListener('touchmove',e=>{
 },{passive:true});
 addEventListener('touchend',e=>{
   for(const t of e.changedTouches){
-    if(t.identifier===touch.l){touch.l=null;touch.jx=0;touch.jy=0;}
+    if(t.identifier===touch.l){
+      const wasTap=performance.now()-touch.ltap<240&&touch.lmoved<14;
+      touch.l=null;touch.jx=0;touch.jy=0;
+      if(wasTap&&started&&!phoneOpen)handleTap(t.clientX,t.clientY);
+    }
     if(t.identifier===touch.r){
-      if(!touch.consumed&&performance.now()-touch.tap<240&&touch.moved<14)doInteract();
+      if(!touch.consumed&&performance.now()-touch.tap<240&&touch.moved<14&&started&&!phoneOpen)
+        handleTap(t.clientX,t.clientY);
       touch.r=null;
     }
   }
@@ -1334,12 +1395,22 @@ addEventListener('touchend',e=>{
 function angDiff(a,b){return ((b-a+Math.PI*3)%TAU)-Math.PI;}
 function enterFocus(idx){
   const f=FOCUS.find(f=>f.idx===idx);
-  const dx=f.look[0]-f.pos[0],dy=f.look[1]-EYE,dz=f.look[2]-f.pos[1];
+  // portrait screens stand further back so the whole canvas fits the frame;
+  // the altarpiece allows less (the bench is behind you)
+  const portrait=innerHeight>innerWidth;
+  const dist=portrait?(idx===2?3.4:4.3):3.05;
+  let vx=f.pos[0]-f.look[0],vz=f.pos[1]-f.look[2];
+  const vl=Math.hypot(vx,vz);
+  const ex=f.look[0]+vx/vl*dist, ez=f.look[2]+vz/vl*dist;
+  // portrait: sight a touch below center so the work rides above the placard
+  const ly=f.look[1]-(portrait?0.55:0);
+  const dx=f.look[0]-ex,dy=ly-EYE,dz=f.look[2]-ez;
   const tyaw=Math.atan2(dx,-dz),tpitch=Math.atan2(dy,Math.hypot(dx,dz));
   focusAnim={t:0,dur:1.35,
     sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
-    ex:f.pos[0],ez:f.pos[1],eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:tpitch};
+    ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:tpitch};
   focusIdx=idx;
+  updateHud();
   sfxFocus();
   const w=WORKS[idx];
   placardEl.querySelector('.tag').textContent=`SAME SHIT — Nº ${['I','II','III'][idx]} / III`;
@@ -1349,15 +1420,25 @@ function enterFocus(idx){
   placardEl.querySelector('.wb').style.display='none';
   setTimeout(()=>{if(focusIdx===idx)placardEl.classList.add('on');},700);
 }
+// only one layer of language at a time: hide thumb hints & the sound
+// toggle while a work, the phone, or the note holds the room
+function updateHud(){
+  const busy=focusIdx>=0||phoneOpen||noteOpen;
+  document.getElementById('touchui').style.display=(isTouch&&!busy)?'block':'none';
+  document.getElementById('keys').style.visibility=busy?'hidden':'visible';
+}
+let phoneOpenedAt=0,noteOpenedAt=0;
 function exitFocus(){
   focusIdx=-1;focusAnim=null;
   placardEl.classList.remove('on');
+  updateHud();
   if(!isTouch&&document.pointerLockElement!==cv)cv.requestPointerLock();
 }
 function openPhone(){
-  phoneOpen=true;
+  phoneOpen=true;phoneOpenedAt=performance.now();
   phoneWrap.classList.add('on');
   buildFeed(focusIdx);
+  updateHud();
   if(document.pointerLockElement)document.exitPointerLock();
   sfxPhone(1);
 }
@@ -1365,27 +1446,32 @@ function closePhone(){
   phoneOpen=false;
   phoneWrap.classList.remove('on');
   putdownBtn.classList.remove('on');
+  updateHud();
   sfxPhone(0);
   if(scrollFlicks>=18&&focusIdx>=0){
     placardEl.querySelector('.wb').style.display='block';
   }
 }
 putdownBtn.addEventListener('click',closePhone);
-phoneWrap.addEventListener('click',e=>{if(e.target===phoneWrap)closePhone();});
+// ignore the browser's synthetic click that trails the opening tap
+phoneWrap.addEventListener('click',e=>{if(e.target===phoneWrap&&performance.now()-phoneOpenedAt>450)closePhone();});
 
 // the folded note
 const noteEl=document.getElementById('noteui');
 function openNote(){
-  noteOpen=true;noteEl.classList.add('on');
+  noteOpen=true;noteOpenedAt=performance.now();
+  noteEl.classList.add('on');
+  updateHud();
   if(document.pointerLockElement)document.exitPointerLock();
   sfxStep(false); // paper rustle
 }
 function closeNote(){
   noteOpen=false;noteEl.classList.remove('on');
+  updateHud();
   if(!isTouch&&started)cv.requestPointerLock();
 }
 document.getElementById('noteclose').addEventListener('click',closeNote);
-noteEl.addEventListener('click',e=>{if(e.target===noteEl)closeNote();});
+noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-noteOpenedAt>450)closeNote();});
 
 // feed
 const CAPS=['same shit ✨','same shit fr','SAME. SHIT.','same shit (hd remaster)','same shit but upscaled',
@@ -1450,9 +1536,17 @@ function buildFeed(startIdx){
 let AC=null,master=null,muted=false,wet=null;
 function initAudio(){
   try{
-    AC=new (window.AudioContext||window.webkitAudioContext)();
+    // 'playback' asks for bigger audio buffers — ambience can afford the
+    // latency, and it stops the audio thread crackling when the GPU is busy
+    const Ctor=window.AudioContext||window.webkitAudioContext;
+    try{AC=new Ctor({latencyHint:'playback'});}catch(e){AC=new Ctor();}
     if(AC.state==='suspended')AC.resume();
-    master=AC.createGain();master.connect(AC.destination);
+    // gentle limiter so stacked transients can never spike into a click
+    const comp=AC.createDynamicsCompressor();
+    comp.threshold.value=-16;comp.knee.value=10;comp.ratio.value=8;
+    comp.attack.value=0.004;comp.release.value=0.2;
+    comp.connect(AC.destination);
+    master=AC.createGain();master.connect(comp);
     master.gain.setValueAtTime(0,AC.currentTime);
     master.gain.linearRampToValueAtTime(0.9,AC.currentTime+1.5); // ease into the room
     // reverb
@@ -1560,7 +1654,8 @@ function toggleMute(){muted=!muted;
 buildThumbs();
 let W=0,H=0,projMat=null;
 function resize(){
-  const dpr=Math.min(devicePixelRatio||1,1.8);
+  // phones render lighter: the audio thread starves before the eye notices
+  const dpr=Math.min(devicePixelRatio||1,isTouch?1.3:1.8);
   W=cv.width=innerWidth*dpr|0;H=cv.height=innerHeight*dpr|0;
   cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
   gl.viewport(0,0,W,H);
@@ -1697,6 +1792,8 @@ window.__ss={
   start(){if(!started){started=true;titleEl.classList.add('off');hud.classList.add('on');}},
   focus(i){enterFocus(i);},
   note(){openNote();},
+  ray(x,y){return tapRay(x,y);},
+  tap(x,y){handleTap(x,y);},
   state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks}),
   painting(i){
     let d=document.getElementById('__pp');

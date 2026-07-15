@@ -362,6 +362,35 @@ say more. Visitors who find it are asked to fold it back.
 | XII · Sightlines & Air | portrait FOV, wordmark recut, seamless room tone | ✅ 2026-07-15 |
 | XIII · The Bench | something left where the collision map keeps no record | ✅ 2026-07-15 |
 
+### 16 · Addendum — Field Report Nº 3, same pocket
+
+Sol returned with the phone and three sharper defects:
+
+**The ghost tap.** A tap stepped back from communion — and then the browser's
+synthetic click, trailing every tap by three hundred milliseconds, walked
+right back in. The visitor was trapped in communion by an echo of their own
+finger. Remedy: on touch devices the museum now ignores clicks entirely;
+taps are handled once, at the touch layer, and the echo falls on deaf walls.
+
+**The deaf tap.** Taps were routed by *proximity* — whatever was nearest
+won — so beside the altar, the painting always outranked the paper underfoot.
+Remedy: a tap now means what it points at. Every tap casts a ray through the
+tapped pixel; if it lands on the folded paper you get the note, if it lands
+on a canvas you commune with that canvas, from either thumb, at any angle.
+
+**The crowded chapel.** In portrait communion, placard, thumb-hints and the
+sound toggle all stacked on top of the art. Remedy: one layer of language at
+a time — the HUD empties during communion; the placard sits on a dark scrim
+at the foot of the screen with the medium line waived; the camera stands
+back a meter further on portrait and sights below center, so the whole
+canvas — figure, glow, and all — rides clear above the text.
+
+**The scratch, second opinion.** The loop seam is fixed, but phones still
+crackled: the audio thread was starving while the GPU painted. The context
+now requests playback-sized buffers, a gentle limiter guards the output, and
+handheld screens render at lower density — the ear notices a starving audio
+thread long before the eye notices missing pixels.
+
 *Volume IV reserved: what the audience did in the building.*
 
 — **Sol × Claude, in concert · MMXXVI**
