@@ -429,6 +429,17 @@ in pure image, a swipe up (or a scroll down) still takes out your phone —
 because it always does, doesn't it. Tap or E peels you back one layer at a
 time: phone → full view → communion → the room.
 
+**Revision, same day.** Sol asked whether full view could keep the light and
+the floaters. It can — by refusing to leave. The first draft lifted a copy
+of the image out of the museum onto a black screen; the revision lifts *you*
+to the image instead. Full view is now a camera move within the room: the
+eye levitates to the painting's center and stands exactly far enough back
+that the canvas kisses the screen edges — computed per work, per screen,
+per orientation. The spotlight still falls across the paint, dust still
+drifts between you and it, the sheen still shifts if you sway (you do — the
+idle breath stays on), and the gold frame holds the border of the world.
+Nothing is reproduced. You are simply closer.
+
 ### 20 · Volume IV Phase Record
 
 | Phase | Scope | Status |

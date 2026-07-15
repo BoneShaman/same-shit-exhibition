@@ -52,14 +52,11 @@
     background:rgba(2,2,4,.55);border:1px solid rgba(214,255,74,.4);padding:11px 16px;
     cursor:pointer;text-transform:uppercase;backdrop-filter:blur(4px)}
   #fsbtn.on{display:block}
-  #fsart{position:fixed;inset:0;z-index:8;background:#010102;display:none;
-    align-items:center;justify-content:center}
-  #fsart.on{display:flex}
-  #fsholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-  #fsholder canvas{max-width:100%;max-height:100%;width:auto;height:auto}
-  #fscap{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
+  #fscap{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:9;display:none;
     font-family:"SF Mono",Menlo,monospace;font-size:10px;letter-spacing:.22em;
-    color:rgba(242,239,230,.6);opacity:0;text-transform:uppercase;white-space:nowrap}
+    color:rgba(242,239,230,.6);opacity:0;text-transform:uppercase;white-space:nowrap;
+    text-shadow:0 1px 8px rgba(0,0,0,.9);pointer-events:none}
+  #fscap.show{display:block}
   #fscap.anim{animation:fscap 4.5s ease forwards}
   @keyframes fscap{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
 
@@ -222,10 +219,7 @@
 </div>
 
 <button id="fsbtn">⛶ FULL VIEW</button>
-<div id="fsart">
-  <div id="fsholder"></div>
-  <div id="fscap">E — RETURN · SCROLL ↓ — YOUR PHONE</div>
-</div>
+<div id="fscap">E — RETURN · SCROLL ↓ — YOUR PHONE</div>
 
 <div id="phonewrap">
   <div id="phone">
@@ -1115,10 +1109,8 @@ function hang(idx,wall,center,w){
   texQuad(canvas,corners,n,0.16,0.10,false);
   const plc=makePlacard(['I','II','III'][idx],work.title,work.medium,work.desc);
   texQuad(plc,pc,pn,0.55,0.02,false);
-  FOCUS.push({pos:[fx,fz],look:[center[0]+(wall==='N'?0:(wall==='W'?-5.9-center[0]:5.9-center[0])),center[1],wall==='N'?44.9:center[2]],idx});
-  // fix look target properly:
   const lookT=wall==='W'?[-5.9,center[1],center[2]]:wall==='E'?[5.9,center[1],center[2]]:[center[0],center[1],44.9];
-  FOCUS[FOCUS.length-1].look=lookT;
+  FOCUS.push({pos:[fx,fz],look:lookT,idx,w,h});
 }
 hang(0,'W',[-6,2.20,15],2.6);
 hang(1,'E',[ 6,2.20,27],2.6);
@@ -1209,6 +1201,7 @@ const U={
 // 6. PLAYER
 // ============================================================
 const player={x:0,y:1.7,z:1.4,yaw:Math.PI,pitch:0,vx:0,vz:0,bob:0,bobAmp:0};
+let camLift=0; // full view levitates the eye to the painting's center
 const EYE=1.7,RADIUS=0.35;
 const keys={};
 let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,fsOpen=false,scrollFlicks=0,everScrolled=new Set();
@@ -1314,6 +1307,7 @@ cv.addEventListener('click',()=>{
   // ~300ms later must not re-trigger anything (it was re-communing on exit)
   if(!started||isTouch)return;
   if(phoneOpen||noteOpen)return;
+  if(fsOpen){if(performance.now()-fsOpenedAt>450)closeFs();return;}
   if(document.pointerLockElement!==cv){cv.requestPointerLock();return;}
   if(focusIdx<0){if(nearNote())openNote();else{const f=nearFocus();if(f>=0)enterFocus(f);}}
 });
@@ -1442,7 +1436,8 @@ function enterFocus(idx){
   const tyaw=Math.atan2(dx,-dz),tpitch=Math.atan2(dy,Math.hypot(dx,dz));
   focusAnim={t:0,dur:1.35,
     sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
-    ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:tpitch};
+    ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:tpitch,
+    sl:camLift,el:0};
   focusIdx=idx;
   updateHud();
   sfxFocus();
@@ -1452,7 +1447,7 @@ function enterFocus(idx){
   placardEl.querySelector('.med').textContent=w.medium;
   placardEl.querySelector('.desc').textContent=w.desc;
   placardEl.querySelector('.wb').style.display='none';
-  setTimeout(()=>{if(focusIdx===idx)placardEl.classList.add('on');},700);
+  setTimeout(()=>{if(focusIdx===idx&&!fsOpen)placardEl.classList.add('on');},700);
 }
 // only one layer of language at a time: hide thumb hints & the sound
 // toggle while a work, the phone, or the note holds the room
@@ -1466,6 +1461,7 @@ function updateHud(){
 let phoneOpenedAt=0,noteOpenedAt=0;
 function exitFocus(){
   if(fsOpen)closeFs();
+  camLift=0;
   focusIdx=-1;focusAnim=null;
   placardEl.classList.remove('on');
   updateHud();
@@ -1510,29 +1506,50 @@ function closeNote(){
 document.getElementById('noteclose').addEventListener('click',closeNote);
 noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-noteOpenedAt>450)closeNote();});
 
-// full view — the pure-image layer above communion
-const fsEl=document.getElementById('fsart');
-let fsOpenedAt=0;
+// full view — the pure-image layer, IN the room: the camera levitates to
+// the canvas until it fills the screen, still under its light, dust and all
+let fsOpenedAt=0,fsReturn=null;
 function openFs(){
   if(focusIdx<0||fsOpen)return;
+  const f=FOCUS.find(q=>q.idx===focusIdx);
   fsOpen=true;fsOpenedAt=performance.now();
-  const holder=document.getElementById('fsholder');
-  holder.innerHTML='';holder.appendChild(paintingCanvases[focusIdx]);
-  fsEl.classList.add('on');
+  fsReturn={x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch};
+  let nx=f.pos[0]-f.look[0],nz=f.pos[1]-f.look[2];
+  const nl=Math.hypot(nx,nz);nx/=nl;nz/=nl;
+  // stand exactly far enough that the larger dimension kisses the screen edge
+  const fovY=((innerHeight>innerWidth)?88:72)*Math.PI/180;
+  const asp=innerWidth/innerHeight;
+  const dH=(f.h/2*1.07)/Math.tan(fovY/2);
+  const dW=(f.w/2*1.07)/Math.tan(Math.atan(Math.tan(fovY/2)*asp));
+  const d=Math.max(dH,dW,0.7);
+  const ex=f.look[0]+nx*d, ez=f.look[2]+nz*d;
+  const tyaw=Math.atan2(f.look[0]-ex,-(f.look[2]-ez));
+  focusAnim={t:0,dur:1.1,sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
+    ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:0,
+    sl:camLift,el:f.look[1]-EYE};
   placardEl.classList.remove('on');
   const cap=document.getElementById('fscap');
-  cap.classList.remove('anim');void cap.offsetWidth;cap.classList.add('anim');
+  cap.classList.add('show');cap.classList.remove('anim');void cap.offsetWidth;cap.classList.add('anim');
   updateHud();
   if(document.pointerLockElement)document.exitPointerLock();
   sfxTick();
 }
 function closeFs(){
-  fsOpen=false;fsEl.classList.remove('on');
-  if(focusIdx>=0)placardEl.classList.add('on');
+  fsOpen=false;
+  const cap=document.getElementById('fscap');
+  cap.classList.remove('show');cap.classList.remove('anim');
+  if(focusIdx>=0){
+    if(fsReturn){
+      focusAnim={t:0,dur:1.0,sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
+        ex:fsReturn.x,ez:fsReturn.z,
+        eyaw:player.yaw+angDiff(player.yaw,fsReturn.yaw),epitch:fsReturn.pitch,
+        sl:camLift,el:0};
+    }
+    placardEl.classList.add('on');
+  }else camLift=0;
   updateHud();
 }
 document.getElementById('fsbtn').addEventListener('click',openFs);
-fsEl.addEventListener('click',()=>{if(performance.now()-fsOpenedAt>450)closeFs();});
 
 // feed
 const CAPS=['same shit ✨','same shit fr','SAME. SHIT.','same shit (hd remaster)','same shit but upscaled',
@@ -1748,6 +1765,7 @@ function frame(){
     player.z=lerp(focusAnim.sz,focusAnim.ez,t);
     player.yaw=lerp(focusAnim.syaw,focusAnim.eyaw,t);
     player.pitch=lerp(focusAnim.spitch,focusAnim.epitch,t);
+    camLift=lerp(focusAnim.sl||0,focusAnim.el||0,t);
     if(focusAnim.t>=1)focusAnim=null;
   }else if(focusIdx<0&&!phoneOpen&&!noteOpen){
     let ix=0,iz=0;
@@ -1775,7 +1793,7 @@ function frame(){
   }
   const bobY=Math.sin(player.bob)*0.038*player.bobAmp;
   const swayY=Math.sin(time*0.55)*0.006;
-  camX=player.x;camY=EYE+bobY+swayY;camZ=player.z;
+  camX=player.x;camY=EYE+camLift+bobY+swayY;camZ=player.z;
   camYaw=player.yaw+Math.sin(player.bob*0.5)*0.004*player.bobAmp;
   camPitch=player.pitch;
 
