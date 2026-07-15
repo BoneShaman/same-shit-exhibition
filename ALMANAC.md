@@ -440,6 +440,16 @@ drifts between you and it, the sheen still shifts if you sway (you do — the
 idle breath stays on), and the gold frame holds the border of the world.
 Nothing is reproduced. You are simply closer.
 
+**Second revision, same day.** Sol added two graces. First, the zoom now
+stands back a little further, leaving a border of dark room around the gold —
+a frame made of nothing around the frame made of something, so no interface
+ever touches the work. Second, depth of field: a feathered blur sheet with a
+hole cut precisely where the painting sits, computed per work, per screen,
+per orientation. The wall softens, the placard beside the frame melts into
+an illegible smudge, and the eye is left nowhere to go but in. (The green
+sliver that haunted the bottom edge — the PUT IT DOWN button leaning into
+frame from offstage — has been sent fully offstage.)
+
 ### 20 · Volume IV Phase Record
 
 | Phase | Scope | Status |

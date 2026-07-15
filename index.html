@@ -52,6 +52,11 @@
     background:rgba(2,2,4,.55);border:1px solid rgba(214,255,74,.4);padding:11px 16px;
     cursor:pointer;text-transform:uppercase;backdrop-filter:blur(4px)}
   #fsbtn.on{display:block}
+  #fsblur{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .9s;
+    backdrop-filter:blur(9px) brightness(.82) saturate(.85);
+    -webkit-backdrop-filter:blur(9px) brightness(.82) saturate(.85);
+    background:rgba(3,3,6,.18)}
+  #fsblur.on{opacity:1}
   #fscap{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:9;display:none;
     font-family:"SF Mono",Menlo,monospace;font-size:10px;letter-spacing:.22em;
     color:rgba(242,239,230,.6);opacity:0;text-transform:uppercase;white-space:nowrap;
@@ -151,8 +156,9 @@
   #putdown{position:fixed;left:50%;bottom:5vh;transform:translate(-50%,80px);z-index:22;
     font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.26em;color:#020204;
     background:var(--acid);border:none;padding:14px 30px;border-radius:999px;cursor:pointer;
-    transition:transform .4s;text-transform:uppercase;font-weight:700}
-  #putdown.on{transform:translate(-50%,0)}
+    transition:transform .4s,opacity .4s;text-transform:uppercase;font-weight:700;
+    opacity:0;pointer-events:none}
+  #putdown.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 
   /* ---------- title screen ---------- */
   #title{position:fixed;inset:0;z-index:30;background:#020204;display:flex;flex-direction:column;
@@ -195,6 +201,7 @@
 </head>
 <body>
 <canvas id="gl"></canvas>
+<div id="fsblur"></div>
 <div id="vig"></div>
 <div id="grain"></div>
 
@@ -1508,20 +1515,31 @@ noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-note
 
 // full view — the pure-image layer, IN the room: the camera levitates to
 // the canvas until it fills the screen, still under its light, dust and all
-let fsOpenedAt=0,fsReturn=null;
+let fsOpenedAt=0,fsReturn=null,fsBlurTO=0,fsPortrait=false;
 function openFs(){
   if(focusIdx<0||fsOpen)return;
   const f=FOCUS.find(q=>q.idx===focusIdx);
-  fsOpen=true;fsOpenedAt=performance.now();
+  fsOpen=true;fsOpenedAt=performance.now();fsPortrait=innerHeight>innerWidth;
   fsReturn={x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch};
   let nx=f.pos[0]-f.look[0],nz=f.pos[1]-f.look[2];
   const nl=Math.hypot(nx,nz);nx/=nl;nz/=nl;
-  // stand exactly far enough that the larger dimension kisses the screen edge
+  // stand back far enough to leave a border of room around the work —
+  // a frame made of darkness around the frame made of gold
   const fovY=((innerHeight>innerWidth)?88:72)*Math.PI/180;
   const asp=innerWidth/innerHeight;
-  const dH=(f.h/2*1.07)/Math.tan(fovY/2);
-  const dW=(f.w/2*1.07)/Math.tan(Math.atan(Math.tan(fovY/2)*asp));
+  const tanH=Math.tan(fovY/2);
+  const dH=(f.h/2*1.24)/tanH;
+  const dW=(f.w/2*1.24)/(tanH*asp);
   const d=Math.max(dH,dW,0.7);
+  // depth of field for everything that isn't the painting: a backdrop-blur
+  // sheet with a feathered hole cut exactly where the work will sit
+  const hwPx=(f.w/2)/(d*tanH*asp)*innerWidth/2;
+  const hhPx=(f.h/2)/(d*tanH)*innerHeight/2;
+  const blur=document.getElementById('fsblur');
+  const mg=`radial-gradient(ellipse ${(hwPx*1.55).toFixed(0)}px ${(hhPx*1.55).toFixed(0)}px at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 66%, #000 100%)`;
+  blur.style.maskImage=mg;blur.style.webkitMaskImage=mg;
+  clearTimeout(fsBlurTO);
+  fsBlurTO=setTimeout(()=>{if(fsOpen)blur.classList.add('on');},1000);
   const ex=f.look[0]+nx*d, ez=f.look[2]+nz*d;
   const tyaw=Math.atan2(f.look[0]-ex,-(f.look[2]-ez));
   focusAnim={t:0,dur:1.1,sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
@@ -1536,6 +1554,8 @@ function openFs(){
 }
 function closeFs(){
   fsOpen=false;
+  clearTimeout(fsBlurTO);
+  document.getElementById('fsblur').classList.remove('on');
   const cap=document.getElementById('fscap');
   cap.classList.remove('show');cap.classList.remove('anim');
   if(focusIdx>=0){
@@ -1740,6 +1760,7 @@ function resize(){
   // portrait screens get a taller field of view so the architecture still reads
   const fovDeg=(W/H<1)?88:72;
   projMat=persp(fovDeg*Math.PI/180,W/H,0.05,90);
+  if(fsOpen&&(H>W)!==fsPortrait)closeFs(); // reframe only on a true orientation flip
 }
 addEventListener('resize',resize);resize();
 
