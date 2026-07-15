@@ -1438,8 +1438,9 @@ function enterFocus(idx){
   const vl=Math.hypot(vx,vz);
   const ex=f.look[0]+vx/vl*dist, ez=f.look[2]+vz/vl*dist;
   // sight below center where needed: portrait rides the work above the
-  // placard; the altarpiece drops the gaze so its full frame lands in view
-  const ly=f.look[1]-(portrait?0.55:(idx===2?0.40:0));
+  // placard; the altarpiece drops the gaze just enough that the whole frame
+  // lands in view with the view bottom still on wall, not floor
+  const ly=f.look[1]-(portrait?0.55:(idx===2?0.28:0));
   const dx=f.look[0]-ex,dy=ly-EYE,dz=f.look[2]-ez;
   const tyaw=Math.atan2(dx,-dz),tpitch=Math.atan2(dy,Math.hypot(dx,dz));
   focusAnim={t:0,dur:1.35,
