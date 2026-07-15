@@ -450,6 +450,14 @@ an illegible smudge, and the eye is left nowhere to go but in. (The green
 sliver that haunted the bottom edge — the PUT IT DOWN button leaning into
 frame from offstage — has been sent fully offstage.)
 
+**Third revision, same day.** The altarpiece is taller than its siblings and
+desktop communion was cropping the foot of its frame; it now has its own
+sightline — a step further back, gaze dropped, bounded by the bench behind
+you — so all four bars of gold land in view. And the full-view caption no
+longer fades: *E — RETURN · SCROLL ↓ — YOUR PHONE* stands quietly in the
+dark border for as long as you do. It is useful context, and it is bait. The
+invitation to the rectangle should not expire; it never does anywhere else.
+
 ### 20 · Volume IV Phase Record
 
 | Phase | Scope | Status |

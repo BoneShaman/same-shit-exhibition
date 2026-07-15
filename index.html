@@ -61,9 +61,8 @@
     font-family:"SF Mono",Menlo,monospace;font-size:10px;letter-spacing:.22em;
     color:rgba(242,239,230,.6);opacity:0;text-transform:uppercase;white-space:nowrap;
     text-shadow:0 1px 8px rgba(0,0,0,.9);pointer-events:none}
-  #fscap.show{display:block}
-  #fscap.anim{animation:fscap 4.5s ease forwards}
-  @keyframes fscap{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
+  #fscap.show{display:block;animation:fscapin 1s .5s ease both}
+  @keyframes fscapin{from{opacity:0}to{opacity:.95}}
 
   /* ---------- the folded note ---------- */
   #noteui{position:fixed;inset:0;z-index:24;display:none;align-items:center;justify-content:center;
@@ -1431,14 +1430,16 @@ function angDiff(a,b){return ((b-a+Math.PI*3)%TAU)-Math.PI;}
 function enterFocus(idx){
   const f=FOCUS.find(f=>f.idx===idx);
   // portrait screens stand further back so the whole canvas fits the frame;
-  // the altarpiece allows less (the bench is behind you)
+  // the altarpiece is taller than the rest and gets its own sightline
+  // (bounded by the bench behind you)
   const portrait=innerHeight>innerWidth;
-  const dist=portrait?(idx===2?3.4:4.3):3.05;
+  const dist=portrait?(idx===2?3.4:4.3):(idx===2?3.35:3.05);
   let vx=f.pos[0]-f.look[0],vz=f.pos[1]-f.look[2];
   const vl=Math.hypot(vx,vz);
   const ex=f.look[0]+vx/vl*dist, ez=f.look[2]+vz/vl*dist;
-  // portrait: sight a touch below center so the work rides above the placard
-  const ly=f.look[1]-(portrait?0.55:0);
+  // sight below center where needed: portrait rides the work above the
+  // placard; the altarpiece drops the gaze so its full frame lands in view
+  const ly=f.look[1]-(portrait?0.55:(idx===2?0.40:0));
   const dx=f.look[0]-ex,dy=ly-EYE,dz=f.look[2]-ez;
   const tyaw=Math.atan2(dx,-dz),tpitch=Math.atan2(dy,Math.hypot(dx,dz));
   focusAnim={t:0,dur:1.35,
@@ -1546,8 +1547,7 @@ function openFs(){
     ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:0,
     sl:camLift,el:f.look[1]-EYE};
   placardEl.classList.remove('on');
-  const cap=document.getElementById('fscap');
-  cap.classList.add('show');cap.classList.remove('anim');void cap.offsetWidth;cap.classList.add('anim');
+  document.getElementById('fscap').classList.add('show');
   updateHud();
   if(document.pointerLockElement)document.exitPointerLock();
   sfxTick();
@@ -1556,8 +1556,7 @@ function closeFs(){
   fsOpen=false;
   clearTimeout(fsBlurTO);
   document.getElementById('fsblur').classList.remove('on');
-  const cap=document.getElementById('fscap');
-  cap.classList.remove('show');cap.classList.remove('anim');
+  document.getElementById('fscap').classList.remove('show');
   if(focusIdx>=0){
     if(fsReturn){
       focusAnim={t:0,dur:1.0,sx:player.x,sz:player.z,syaw:player.yaw,spitch:player.pitch,
