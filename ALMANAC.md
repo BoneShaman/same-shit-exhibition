@@ -318,7 +318,51 @@ three and vote in their heads. The paintings do not care. That is the point.
 | VIII · The Veil | joint attribution installed across marquee, panel, placards, signatures, feed | ✅ 2026-07-12 |
 | IX · Re-inspection | full reload; commune re-tested on Nº I; zero console errors | ✅ 2026-07-12 |
 
-*Volume III reserved: what the audience did in the building.*
+---
+
+# Volume III : The Pocket Retrofit
+
+*Three days after opening. The audience arrived holding the exhibit.*
+
+### 12 · Field Report Nº 2
+
+Sol walked the monolith on a phone and filed the following: the walls spoke
+keyboard (*W A S D* to a visitor with no keys); the wordmark over the door
+would not fit inside a portrait sightline; a faint scratch surfaced in the
+room tone; and — the finest defect this building will ever produce — **the
+rectangle could not be taken out.** The phone ritual was rigged to a scroll
+wheel, so the exhibition about phones was unplayable from a phone. The
+audience arrived carrying the artwork's subject and the museum didn't
+recognize it.
+
+### 13 · Remedies
+
+| Defect | Remedy |
+|---|---|
+| Keyboard liturgy shown to thumbs | The museum now speaks the visitor's dialect: every prompt, placard cue, and the title marquee swap to TAP / SWIPE language on touch devices. The keys panel becomes a tappable ♪ sound toggle. |
+| The rectangle wouldn't come out | While communing, **swipe up** draws the phone — summoned the way phones are actually summoned, out of the pocket, with the thumb. The most honest gesture in the building. |
+| No way to put it down early | Tap anywhere outside the phone to put it down; a tap anywhere steps back from communion. The ten-flick toll on the PUT IT DOWN button no longer gates escape. |
+| Wordmark clipped in portrait | Field of view widens 72° → 88° on portrait screens; the wordmark recut 6.0 m → 4.6 m; spawn pulled back 0.6 m. SAME SHIT now fits between a phone's shoulders. |
+| Scratch in the room tone | Found: the air loop's seam — the 2-second noise buffer ended on a different sample than it began, clicking at every repeat. The loop is now 4 seconds with a 250 ms crossfaded seam. Footsteps, ticks, and blips got attack envelopes; the master eases in over 1.5 s. The monolith hums without clearing its throat. |
+| Title marquee overflow | The marquee reflows on short screens and scrolls when it must. |
+
+### 14 · The Bench
+
+Something was folded twice and left under the north end of the altar bench.
+It is visible if you look down, which is the one gesture this building has
+been asking of no one and hoping for from everyone. The Almanac declines to
+say more. Visitors who find it are asked to fold it back.
+
+### 15 · Volume III Phase Record
+
+| Phase | Scope | Status |
+|---|---|---|
+| X · Dialect | touch-native language across marquee, HUD, placards | ✅ 2026-07-15 |
+| XI · The Pocket | swipe-up phone, tap-out communion, backdrop put-down | ✅ 2026-07-15 |
+| XII · Sightlines & Air | portrait FOV, wordmark recut, seamless room tone | ✅ 2026-07-15 |
+| XIII · The Bench | something left where the collision map keeps no record | ✅ 2026-07-15 |
+
+*Volume IV reserved: what the audience did in the building.*
 
 — **Sol × Claude, in concert · MMXXVI**
 *no pigment was harmed. every pixel was.*

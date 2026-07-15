@@ -21,7 +21,7 @@ Works by **Sol × Claude** — three canvases, two hands, no labels.
 | **E** | commune with a work |
 | *while communing:* **scroll ↓** | take out your phone. see what happens. |
 | **M** | sound |
-| touch | left thumb walks · right thumb looks · tap communes |
+| touch | left thumb walks · right thumb looks · tap communes · **swipe ↑** while communing takes out your phone |
 
 Walk slowly. Look up. You're here now.
 
