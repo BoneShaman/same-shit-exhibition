@@ -46,6 +46,23 @@
   #keys.touch{pointer-events:auto;border:1px solid rgba(242,239,230,.22);padding:10px 16px;
     color:rgba(242,239,230,.6);cursor:pointer}
 
+  /* ---------- full view: the pure-image layer ---------- */
+  #fsbtn{position:fixed;top:20px;right:24px;z-index:7;display:none;
+    font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.22em;color:var(--acid);
+    background:rgba(2,2,4,.55);border:1px solid rgba(214,255,74,.4);padding:11px 16px;
+    cursor:pointer;text-transform:uppercase;backdrop-filter:blur(4px)}
+  #fsbtn.on{display:block}
+  #fsart{position:fixed;inset:0;z-index:8;background:#010102;display:none;
+    align-items:center;justify-content:center}
+  #fsart.on{display:flex}
+  #fsholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  #fsholder canvas{max-width:100%;max-height:100%;width:auto;height:auto}
+  #fscap{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
+    font-family:"SF Mono",Menlo,monospace;font-size:10px;letter-spacing:.22em;
+    color:rgba(242,239,230,.6);opacity:0;text-transform:uppercase;white-space:nowrap}
+  #fscap.anim{animation:fscap 4.5s ease forwards}
+  @keyframes fscap{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
+
   /* ---------- the folded note ---------- */
   #noteui{position:fixed;inset:0;z-index:24;display:none;align-items:center;justify-content:center;
     background:rgba(1,1,3,.6);padding:22px}
@@ -200,8 +217,14 @@
   <div class="med"></div>
   <div class="artist">artist: <b>Sol</b> or <b>Claude</b> — label withheld</div>
   <div class="desc"></div>
-  <div class="cta"><b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back</div>
+  <div class="cta"><b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back &nbsp;·&nbsp; <b>V</b> full view</div>
   <div class="wb">welcome back.</div>
+</div>
+
+<button id="fsbtn">⛶ FULL VIEW</button>
+<div id="fsart">
+  <div id="fsholder"></div>
+  <div id="fscap">E — RETURN · SCROLL ↓ — YOUR PHONE</div>
 </div>
 
 <div id="phonewrap">
@@ -1188,7 +1211,7 @@ const U={
 const player={x:0,y:1.7,z:1.4,yaw:Math.PI,pitch:0,vx:0,vz:0,bob:0,bobAmp:0};
 const EYE=1.7,RADIUS=0.35;
 const keys={};
-let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,scrollFlicks=0,everScrolled=new Set();
+let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,fsOpen=false,scrollFlicks=0,everScrolled=new Set();
 
 function collide(nx,nz){
   // outer bounds by region
@@ -1253,13 +1276,19 @@ if(isTouch){
   k.classList.add('touch');k.textContent='♪ SOUND';
   k.addEventListener('click',()=>{toggleMute();k.textContent=muted?'♪ SOUND OFF':'♪ SOUND';});
   placardEl.querySelector('.cta').innerHTML=
-    '<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back';
+    '<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back &nbsp;·&nbsp; <b>⛶</b> full view';
+  document.getElementById('fscap').textContent='TAP — RETURN · SWIPE ↑ — YOUR PHONE';
 }
 
 function doInteract(){
   if(phoneOpen){closePhone();return;}
   if(noteOpen){closeNote();return;}
+  if(fsOpen){closeFs();return;}
   if(focusIdx>=0){exitFocus();return;}
+  // what you're looking at wins; proximity is only the fallback
+  const gaze=tapRay(innerWidth/2,innerHeight/2);
+  if(gaze==='note'){openNote();return;}
+  if(gaze!==null){enterFocus(gaze);return;}
   if(nearNote()){openNote();return;}
   const f=nearFocus();if(f>=0)enterFocus(f);
 }
@@ -1269,7 +1298,8 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyM')toggleMute();
   if(e.code==='KeyE')doInteract();
   if(e.code==='KeyF'&&focusIdx>=0&&!phoneOpen)openPhone();
-  if(e.code==='Escape'){if(phoneOpen)closePhone();else if(noteOpen)closeNote();}
+  if(e.code==='KeyV'&&focusIdx>=0&&!phoneOpen&&!noteOpen){fsOpen?closeFs():openFs();}
+  if(e.code==='Escape'){if(phoneOpen)closePhone();else if(noteOpen)closeNote();else if(fsOpen)closeFs();}
 });
 addEventListener('keyup',e=>keys[e.code]=false);
 
@@ -1336,8 +1366,11 @@ function tapRay(sx,sy){
 }
 function handleTap(sx,sy){
   if(noteOpen){closeNote();return;}
+  if(fsOpen){closeFs();return;}
   if(focusIdx>=0){exitFocus();return;}
-  const hit=tapRay(sx,sy);
+  // the tapped pixel wins; then whatever the view is centered on; then proximity
+  let hit=tapRay(sx,sy);
+  if(hit===null)hit=tapRay(innerWidth/2,innerHeight/2);
   if(hit==='note'){openNote();return;}
   if(hit!==null){enterFocus(hit);return;}
   if(nearNote()){openNote();return;}
@@ -1346,6 +1379,7 @@ function handleTap(sx,sy){
 
 addEventListener('touchstart',e=>{
   if(!started||phoneOpen||noteOpen)return;
+  if(e.target.closest&&e.target.closest('#fsbtn,#keys,#noteclose,#putdown'))return;
   for(const t of e.changedTouches){
     if(focusIdx<0&&t.clientX<innerWidth/2&&touch.l===null){
       touch.l=t.identifier;touch.lx=t.clientX;touch.ly=t.clientY;
@@ -1423,12 +1457,15 @@ function enterFocus(idx){
 // only one layer of language at a time: hide thumb hints & the sound
 // toggle while a work, the phone, or the note holds the room
 function updateHud(){
-  const busy=focusIdx>=0||phoneOpen||noteOpen;
+  const busy=focusIdx>=0||phoneOpen||noteOpen||fsOpen;
   document.getElementById('touchui').style.display=(isTouch&&!busy)?'block':'none';
   document.getElementById('keys').style.visibility=busy?'hidden':'visible';
+  document.getElementById('brand').style.visibility=fsOpen?'hidden':'visible';
+  document.getElementById('fsbtn').classList.toggle('on',focusIdx>=0&&!phoneOpen&&!noteOpen&&!fsOpen);
 }
 let phoneOpenedAt=0,noteOpenedAt=0;
 function exitFocus(){
+  if(fsOpen)closeFs();
   focusIdx=-1;focusAnim=null;
   placardEl.classList.remove('on');
   updateHud();
@@ -1472,6 +1509,30 @@ function closeNote(){
 }
 document.getElementById('noteclose').addEventListener('click',closeNote);
 noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-noteOpenedAt>450)closeNote();});
+
+// full view — the pure-image layer above communion
+const fsEl=document.getElementById('fsart');
+let fsOpenedAt=0;
+function openFs(){
+  if(focusIdx<0||fsOpen)return;
+  fsOpen=true;fsOpenedAt=performance.now();
+  const holder=document.getElementById('fsholder');
+  holder.innerHTML='';holder.appendChild(paintingCanvases[focusIdx]);
+  fsEl.classList.add('on');
+  placardEl.classList.remove('on');
+  const cap=document.getElementById('fscap');
+  cap.classList.remove('anim');void cap.offsetWidth;cap.classList.add('anim');
+  updateHud();
+  if(document.pointerLockElement)document.exitPointerLock();
+  sfxTick();
+}
+function closeFs(){
+  fsOpen=false;fsEl.classList.remove('on');
+  if(focusIdx>=0)placardEl.classList.add('on');
+  updateHud();
+}
+document.getElementById('fsbtn').addEventListener('click',openFs);
+fsEl.addEventListener('click',()=>{if(performance.now()-fsOpenedAt>450)closeFs();});
 
 // feed
 const CAPS=['same shit ✨','same shit fr','SAME. SHIT.','same shit (hd remaster)','same shit but upscaled',
@@ -1669,6 +1730,7 @@ gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
 gl.clearColor(0.008,0.009,0.014,1);
 
 let lastT=performance.now(),time=0,lastStepPhase=0;
+let stillT=0,lastHint=null,fadeYaw=0,fadePitch=0,uiF=1;
 
 function frame(){
   requestAnimationFrame(frame);
@@ -1717,16 +1779,26 @@ function frame(){
   camYaw=player.yaw+Math.sin(player.bob*0.5)*0.004*player.bobAmp;
   camPitch=player.pitch;
 
-  // ---- hint / crosshair ----
+  // ---- hint / crosshair: gaze offers first, proximity is fallback ----
+  const busy=focusIdx>=0||phoneOpen||noteOpen||fsOpen;
   let hintTxt=null;
-  if(focusIdx<0&&!phoneOpen&&!noteOpen){
-    if(nearNote())hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;SOMETHING IS FOLDED UNDER THE BENCH';
+  if(!busy){
+    const gaze=tapRay(innerWidth/2,innerHeight/2);
+    if(gaze==='note')hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;SOMETHING IS FOLDED UNDER THE BENCH';
+    else if(gaze!==null)hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;COMMUNE WITH THE WORK';
+    else if(nearNote())hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;SOMETHING IS FOLDED UNDER THE BENCH';
     else if(nearFocus()>=0)hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;COMMUNE WITH THE WORK';
   }
+  // stand still for two seconds and the interface bows out of the sightline
+  const turning=Math.abs(angDiff(fadeYaw,player.yaw))>0.010||Math.abs(fadePitch-player.pitch)>0.010;
+  const strolling=Math.hypot(player.vx,player.vz)>0.25;
+  if(hintTxt!==lastHint||turning||strolling)stillT=0;else stillT+=dt;
+  fadeYaw=player.yaw;fadePitch=player.pitch;lastHint=hintTxt;
+  uiF=lerp(uiF,(hintTxt&&stillT>2)?0:1,1-Math.exp(-dt*4));
   crossEl.classList.toggle('hot',!!hintTxt);
-  if(hintTxt){hintEl.innerHTML=hintTxt;hintEl.classList.add('on');}
-  else hintEl.classList.remove('on');
-  crossEl.style.opacity=(focusIdx>=0||phoneOpen||noteOpen)?'0':'1';
+  if(hintTxt)hintEl.innerHTML=hintTxt;
+  hintEl.style.opacity=hintTxt?String(0.95*uiF):'0';
+  crossEl.style.opacity=busy?'0':String(uiF.toFixed(3));
 
   // ---- render ----
   const vp=mul4(projMat,viewMat(camX,camY,camZ,camYaw,camPitch));

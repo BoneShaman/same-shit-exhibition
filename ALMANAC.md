@@ -391,7 +391,53 @@ now requests playback-sized buffers, a gentle limiter guards the output, and
 handheld screens render at lower density — the ear notices a starving audio
 thread long before the eye notices missing pixels.
 
-*Volume IV reserved: what the audience did in the building.*
+---
+
+# Volume IV : The Courteous Interface
+
+*Field Report Nº 4. The building learns manners.*
+
+### 17 · Gaze Is an Offer
+
+The crosshair now asks before it assumes. What the visitor is *looking at*
+determines what the building offers: sight the folded paper and the paper is
+offered, sight a canvas and communion is offered — from the same square of
+floor, at any angle. Proximity is demoted to a fallback for the
+absent-minded. (Previously the nearest thing always won, and beside the
+altar the painting outranked the paper underfoot no matter how hard you
+stared at it.)
+
+### 18 · The Interface Bows Out
+
+Stand still before a work for two seconds and the dot and its invitation
+fade to nothing, leaving the visitor alone with the painting. Move a
+muscle — a step, a glance — and they return. A good attendant knows when
+to stop hovering; this one now leaves the gallery when you start actually
+looking.
+
+### 19 · The Fourth Layer — Pure Image
+
+There were three ways to hold a work: across the room, in communion, and
+through the phone. Sol commissioned a fourth: **FULL VIEW** — a top-right
+control during communion (or the V key) that surrenders the entire screen
+to the painting itself. No placard, no dot, no wordmark, no frame, no
+architecture. The generated canvas at native resolution on black — brush
+grain, weave, birds, the little glow on the figure's face.
+
+The layers nest like an onion, and the rectangle pierces all of them: even
+in pure image, a swipe up (or a scroll down) still takes out your phone —
+because it always does, doesn't it. Tap or E peels you back one layer at a
+time: phone → full view → communion → the room.
+
+### 20 · Volume IV Phase Record
+
+| Phase | Scope | Status |
+|---|---|---|
+| XIV · Gaze | center-ray offers for paper and works; proximity demoted | ✅ 2026-07-15 |
+| XV · Bow | 2-second stillness fade on dot + hint | ✅ 2026-07-15 |
+| XVI · Pure Image | full-view layer, phone-permeable, onion routing | ✅ 2026-07-15 |
+
+*Volume V reserved: what the audience did in the building.*
 
 — **Sol × Claude, in concert · MMXXVI**
 *no pigment was harmed. every pixel was.*
