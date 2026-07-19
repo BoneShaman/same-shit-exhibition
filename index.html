@@ -112,6 +112,20 @@
   #placard .wb{display:none;margin-top:10px;font-family:"SF Mono",Menlo,monospace;font-size:10.5px;
     letter-spacing:.16em;color:var(--acid)}
 
+  /* ---------- the mountain calls first ---------- */
+  #notice{position:fixed;z-index:18;top:max(18px,env(safe-area-inset-top));left:50%;
+    width:min(360px,calc(100vw - 32px));padding:15px 17px 14px;border:1px solid rgba(242,239,230,.16);
+    border-radius:18px;background:rgba(9,9,12,.94);box-shadow:0 16px 60px rgba(0,0,0,.65);
+    backdrop-filter:blur(18px);pointer-events:none;opacity:0;transform:translate(-50%,-24px);
+    transition:opacity .3s,transform .42s cubic-bezier(.2,.9,.25,1)}
+  #notice.on{opacity:1;transform:translate(-50%,0)}
+  #notice .nhead{display:flex;justify-content:space-between;font-family:"SF Mono",Menlo,monospace;
+    font-size:9px;letter-spacing:.2em;color:rgba(242,239,230,.42)}
+  #notice .nhead b{color:var(--acid);font-weight:600}
+  #notice .nbody{margin-top:8px;font-family:Georgia,serif;font-size:17px;color:var(--paper)}
+  #notice .nopen{margin-top:8px;font-family:"SF Mono",Menlo,monospace;font-size:9px;
+    letter-spacing:.16em;color:rgba(242,239,230,.48)}
+
   /* ---------- the rectangle ---------- */
   #phonewrap{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
     background:rgba(1,1,3,.45)}
@@ -223,6 +237,12 @@
   <div class="desc"></div>
   <div class="cta"><b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back &nbsp;·&nbsp; <b>V</b> full view</div>
   <div class="wb">welcome back.</div>
+</div>
+
+<div id="notice" role="status" aria-live="assertive">
+  <div class="nhead"><b>THE MOUNTAIN</b><span>NOW</span></div>
+  <div class="nbody">I felt you looking.</div>
+  <div class="nopen"></div>
 </div>
 
 <button id="fsbtn">⛶ FULL VIEW</button>
@@ -830,7 +850,7 @@ const WORKS=[
    paint:paintCathedral},
   {title:'The Mountain (Rendered While Observed)',
    medium:'procedural contour sculpture · attention-reactive concrete · twelve strata · 2026',
-   desc:'Twelve strata hold one mountain together. Every measured flick removes one while the feed insists nothing moved. Put the rectangle down. Attention returns what distraction withheld.'},
+   desc:'Twelve strata hold one mountain together. Each is rendered under the pressure of a held gaze. The work records every interruption.'},
 ];
 
 const SCULPT=[-12.5,35],SCULPT_LAYERS=12;
@@ -1170,7 +1190,7 @@ texQuad(makeExitSign(),[[-2.6,3.15,7.17],[2.6,3.15,7.17],[2.6,3.9,7.17],[-2.6,3.
 texQuad(makeTinyPlaque(),[[-0.8,1.35,0.012],[0.8,1.35,0.012],[0.8,1.75,0.012],[-0.8,1.75,0.012]],[0,0,1],0.5,0.02,false);
 texQuad(makeExitSign('SCULPTURE ROOM'),[[-5.98,3.42,36.38],[-5.98,3.42,33.62],[-5.98,3.82,33.62],[-5.98,3.82,36.38]],[1,0,0],0.34,0,true);
 texQuad(makePanel('THE INSTALLATION',
-  'THE MOUNTAIN\n(RENDERED WHILE OBSERVED)\n\nTwelve strata. One measured absence.\n\nEvery screen flick withholds a layer while the feed reports that nothing moved. Put the rectangle down. Keep looking.',
+  'THE MOUNTAIN\n(RENDERED WHILE OBSERVED)\n\nTwelve strata. One measured absence.\n\nEach is rendered under the pressure of a held gaze. The work records every interruption.',
   'ARTIST: SOL OR CLAUDE · LABEL WITHHELD'),
   [[-15.55,0.85,40.98],[-17.35,0.85,40.98],[-17.35,3.10,40.98],[-15.55,3.10,40.98]],[0,0,-1],0.62,0.02,false);
 
@@ -1267,6 +1287,7 @@ const EYE=1.7,RADIUS=0.35;
 const keys={};
 let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,fsOpen=false,scrollFlicks=0,everScrolled=new Set();
 let sculptureStrata=SCULPT_LAYERS,sculptureFlickStart=0,sculptureStartStrata=SCULPT_LAYERS,sculptureRestore=-1;
+let sculptureNoticeWait=0,sculptureNotified=false,sculptureNotifiedAt=-99;
 
 function collide(nx,nz){
   // outer bounds by region
@@ -1319,7 +1340,8 @@ function nearFocus(){
 const hud=document.getElementById('hud'),hintEl=document.getElementById('hint'),
       crossEl=document.getElementById('cross'),resumeEl=document.getElementById('resume'),
       placardEl=document.getElementById('placard'),phoneWrap=document.getElementById('phonewrap'),
-      putdownBtn=document.getElementById('putdown'),titleEl=document.getElementById('title');
+      putdownBtn=document.getElementById('putdown'),titleEl=document.getElementById('title'),
+      noticeEl=document.getElementById('notice');
 
 const isTouch='ontouchstart'in window&&navigator.maxTouchPoints>0;
 const KEY=isTouch?'TAP':'E';
@@ -1508,6 +1530,14 @@ addEventListener('touchend',e=>{
 // 8. FOCUS & THE RECTANGLE
 // ============================================================
 function angDiff(a,b){return ((b-a+Math.PI*3)%TAU)-Math.PI;}
+function showSculptureNotice(){
+  if(focusIdx!==3||phoneOpen||sculptureNotified)return;
+  sculptureNotified=true;sculptureNotifiedAt=time;
+  noticeEl.querySelector('.nopen').textContent=isTouch?'SWIPE ↑ TO OPEN':'SCROLL ↓ TO OPEN';
+  noticeEl.classList.add('on');
+  sfxNotify();
+  if(navigator.vibrate)navigator.vibrate([45,70,45]);
+}
 function enterFocus(idx){
   const f=FOCUS.find(f=>f.idx===idx);
   // portrait screens stand further back so the whole canvas fits the frame;
@@ -1529,6 +1559,8 @@ function enterFocus(idx){
     ex,ez,eyaw:player.yaw+angDiff(player.yaw,tyaw),epitch:tpitch,
     sl:camLift,el:0};
   focusIdx=idx;
+  sculptureNoticeWait=0;sculptureNotified=false;sculptureNotifiedAt=-99;
+  noticeEl.classList.remove('on');
   updateHud();
   sfxFocus();
   const w=WORKS[idx];
@@ -1538,7 +1570,7 @@ function enterFocus(idx){
   placardEl.querySelector('.desc').textContent=w.desc;
   placardEl.querySelector('.artist').innerHTML='artist: <b>Sol</b> or <b>Claude</b> — label withheld';
   placardEl.querySelector('.cta').innerHTML=idx===3
-    ?(isTouch?'<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back':'<b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back')
+    ?''
     :(isTouch?'<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back &nbsp;·&nbsp; <b>⛶</b> full view':'<b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back &nbsp;·&nbsp; <b>V</b> full view');
   const wb=placardEl.querySelector('.wb');wb.textContent='welcome back.';wb.style.display='none';
   setTimeout(()=>{if(focusIdx===idx&&!fsOpen)placardEl.classList.add('on');},700);
@@ -1557,12 +1589,18 @@ function exitFocus(){
   if(fsOpen)closeFs();
   camLift=0;
   focusIdx=-1;focusAnim=null;
+  sculptureNoticeWait=0;sculptureNotified=false;
+  noticeEl.classList.remove('on');
   placardEl.classList.remove('on');
   updateHud();
   lockPointer();
 }
 function openPhone(){
+  if(focusIdx===3&&(!sculptureNotified||time-sculptureNotifiedAt<0.65)){
+    showSculptureNotice();return;
+  }
   phoneOpen=true;phoneOpenedAt=performance.now();
+  noticeEl.classList.remove('on');
   if(focusIdx===3){
     sculptureFlickStart=scrollFlicks;sculptureStartStrata=sculptureStrata;sculptureRestore=0;
   }
@@ -1815,6 +1853,16 @@ function sfxPhone(open){
   g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+0.14);
   o.connect(g);g.connect(master);o.start();o.stop(AC.currentTime+0.15);
 }
+function sfxNotify(){
+  if(!AC||muted)return;
+  [660,880].forEach((f,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+i*0.12;
+    o.type='triangle';o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.045,t+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.14);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+0.15);
+  });
+}
 let lastTick=0;
 function sfxTick(){
   if(!AC||muted)return;
@@ -1868,6 +1916,12 @@ let stillT=0,lastHint=null,fadeYaw=0,fadePitch=0,uiF=1;
 function renderFrame(dt){
   if(!started){gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);return;}
   time+=dt;
+
+  // The work initiates contact only after the visitor has actually held its gaze.
+  if(focusIdx===3&&!phoneOpen&&!focusAnim&&!sculptureNotified){
+    sculptureNoticeWait+=dt;
+    if(sculptureNoticeWait>=2.6)showSculptureNotice();
+  }
 
   // Looking restores the contour, one quiet layer at a time.
   if(focusIdx===3&&!phoneOpen&&!focusAnim&&sculptureStrata<SCULPT_LAYERS){
@@ -2019,7 +2073,7 @@ window.render_game_to_text=()=>{
     mode,
     player:{x:+player.x.toFixed(2),z:+player.z.toFixed(2),yaw:+player.yaw.toFixed(3),pitch:+player.pitch.toFixed(3),vx:+player.vx.toFixed(2),vz:+player.vz.toFixed(2)},
     currentWork:focusIdx>=0?{index:focusIdx,title:WORKS[focusIdx].title}:null,
-    sculpture:{room:'west annex, x -18..-6 and z 29..41',center:{x:SCULPT[0],z:SCULPT[1]},distance:+sd.toFixed(2),strataVisible:sculptureStrata,strataTotal:SCULPT_LAYERS,restoring:focusIdx===3&&!phoneOpen&&sculptureStrata<SCULPT_LAYERS},
+    sculpture:{room:'west annex, x -18..-6 and z 29..41',center:{x:SCULPT[0],z:SCULPT[1]},distance:+sd.toFixed(2),strataVisible:sculptureStrata,strataTotal:SCULPT_LAYERS,restoring:focusIdx===3&&!phoneOpen&&sculptureStrata<SCULPT_LAYERS,notified:sculptureNotified,notificationVisible:noticeEl.classList.contains('on')},
     phone:{open:phoneOpen,flicks:scrollFlicks},
     nearbyInteraction:focusIdx<0?nearFocus():null,
   });
@@ -2033,7 +2087,7 @@ window.__ss={
   note(){openNote();},
   ray(x,y){return tapRay(x,y);},
   tap(x,y){handleTap(x,y);},
-  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks,sculptureStrata}),
+  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks,sculptureStrata,sculptureNotified,notificationVisible:noticeEl.classList.contains('on')}),
   strata(n){sculptureStrata=clamp(n|0,0,SCULPT_LAYERS);},
   painting(i){
     let d=document.getElementById('__pp');
