@@ -1,16 +1,17 @@
 # SAME SHIT
 
-### an AI-upscale artgen exhibition — three landscapes, one thumb
+### three landscapes, one attention-reactive sculpture, one thumb
 
 **Walk it live → https://boneshaman.github.io/same-shit-exhibition/**
 
 A walkable museum in a single HTML file. No dependencies, no build step, no
 CDN — one monolith of hand-rolled WebGL2. Three procedurally painted
 landscapes hold regular people in the most divine outreaches of nature, each
-of them looking down at the rectangle instead.
+of them looking down at the rectangle instead. A west sculpture court asks
+what happens when the mountain behind the rectangle can finally answer back.
 
 Promoted by **Maestro Interactive Entertainment × BuyTheGame.org**.
-Works by **Sol × Claude** — three canvases, two hands, no labels.
+Works by **Sol × Claude** — four works, two hands, no labels.
 
 ## Visiting
 
@@ -20,10 +21,27 @@ Works by **Sol × Claude** — three canvases, two hands, no labels.
 | **mouse** | look |
 | **E** | commune with a work |
 | *while communing:* **scroll ↓** | take out your phone. see what happens. |
+| **F** | fullscreen |
 | **M** | sound |
 | touch | left thumb walks · right thumb looks · tap communes · **swipe ↑** while communing takes out your phone |
 
 Walk slowly. Look up. You're here now.
+
+## The sculpture court
+
+**The Mountain (Rendered While Observed)** is twelve procedural contour
+strata under one light. Commune with it and take out your phone: each measured
+flick withholds a physical layer while the feed insists the mountain has not
+moved. Put the rectangle down and keep looking. Attention restores the work.
+
+## OpenAI Build Week
+
+Built for the [OpenAI Build Week Challenge](https://openai.com/build-week/)
+with Codex and GPT-5.6 across architecture, procedural geometry, interaction,
+accessibility, and verification. Individual model contributions remain
+deliberately unassigned inside the exhibition. The attribution veil is part
+of the work; the only model allowed to identify itself does so in a hidden
+note.
 
 ## Running locally
 

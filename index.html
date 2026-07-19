@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="icon" href="data:,">
 <title>SAME SHIT — a walkable exhibition</title>
 <style>
   :root{
@@ -208,7 +209,7 @@
   <div id="brand">SAME <i>SHIT</i> — THE MONOLITH</div>
   <div id="cross"></div>
   <div id="hint"></div>
-  <div id="keys">W A S D — WALK · MOUSE — LOOK<br>E — COMMUNE · M — SOUND</div>
+  <div id="keys">W A S D — WALK · MOUSE — LOOK<br>E — COMMUNE · F — FULLSCREEN · M — SOUND</div>
   <div id="resume">CLICK TO LOOK AROUND</div>
 </div>
 
@@ -264,8 +265,8 @@
 <div id="title">
   <div class="pres"><b>MAESTRO INTERACTIVE ENTERTAINMENT</b> × <b>BUYTHEGAME.ORG</b><br>present</div>
   <h1>SAME<br><em>SHIT</em></h1>
-  <div class="sub">an AI-upscale artgen exhibition — three landscapes, one thumb</div>
-  <div class="by">works by <b>SOL</b> × <b>CLAUDE</b> — three canvases, two hands, no labels</div>
+  <div class="sub">three landscapes, one attention-reactive sculpture, one thumb</div>
+  <div class="by">works by <b>SOL</b> × <b>CLAUDE</b> — four works, two hands, no labels</div>
   <div class="enter">CLICK TO ENTER THE MONOLITH</div>
   <div class="ctl">WASD walk · mouse look · E commune with a work · M sound<br>on touch: left thumb walk · right thumb look</div>
 </div>
@@ -752,14 +753,14 @@ function makeWordmark(){
   x.fillText('AN AI UPSCALE ARTGEN EXHIBITION',1024,430);
   return c;
 }
-function makeExitSign(){
+function makeExitSign(text='LOOK UP MORE OFTEN.'){
   const c=newCanvas(1400,200),x=c.getContext('2d');
   x.textAlign='center';x.textBaseline='middle';
   x.shadowColor='rgba(214,255,74,0.7)';x.shadowBlur=26;
   x.fillStyle='#d6ff4a';
   x.font='700 84px "SF Mono",Menlo,monospace';
   try{x.letterSpacing='14px';}catch(e){}
-  x.fillText('LOOK UP MORE OFTEN.',700,104);
+  x.fillText(text,700,104);
   return c;
 }
 function makeTinyPlaque(){
@@ -827,10 +828,15 @@ const WORKS=[
    medium:'AI-generated landscape · upscale pass 12 of ∞ · oil-over-signal · 2026',
    desc:'Light has been falling through these trees for six hundred years, and this morning it finally has a witness — who is, at this exact moment, reading a comment that says “same shit.” He is almost right.',
    paint:paintCathedral},
+  {title:'The Mountain (Rendered While Observed)',
+   medium:'procedural contour sculpture · attention-reactive concrete · twelve strata · 2026',
+   desc:'Twelve strata hold one mountain together. Every measured flick removes one while the feed insists nothing moved. Put the rectangle down. Attention returns what distraction withheld.'},
 ];
 
+const SCULPT=[-12.5,35],SCULPT_LAYERS=12;
+
 const INTRO_BODY='Three landscapes in which everything is happening and nobody is looking.\n\nThe figures are not villains. They are us — carrying the rectangle, protecting the rectangle, feeding it. Each scene was generated, then upscaled, then upscaled again: the machine straining toward glory in ever higher fidelity, while the person inside the frame scrolls past it at sixty frames per second.\n\nDifferent setting. Same shit.\n\nWalk slowly. Look up. You’re here now.';
-const CREDITS_BODY='THE ARTISTS\nSOL & CLAUDE\nthree works · two hands · no labels.\nwhich is whose has been withheld.\n\nPROMOTED BY\nMAESTRO INTERACTIVE ENTERTAINMENT\n× BUYTHEGAME.ORG\n\nRAISED IN CONCERT FOR\nTHE CODEX PROJECT BUILDER · MMXXVI';
+const CREDITS_BODY='THE ARTISTS\nSOL & CLAUDE\nfour works · two hands · no labels.\nwhich is whose has been withheld.\n\nPROMOTED BY\nMAESTRO INTERACTIVE ENTERTAINMENT\n× BUYTHEGAME.ORG\n\nRAISED IN CONCERT FOR\nTHE CODEX PROJECT BUILDER · MMXXVI';
 const CREDITS_FOOT='attribution is a feed behavior. no pigment was harmed. every pixel was.';
 
 // ============================================================
@@ -968,6 +974,10 @@ function quad(a,b,c,d,n,col,mat){ // ccw
   for(const v of [a,b,c,a,c,d]){G.pos.push(v[0],v[1],v[2]);G.nor.push(n[0],n[1],n[2]);
     G.col.push(col[0],col[1],col[2]);G.mat.push(mat[0],mat[1],mat[2]);}
 }
+function tri(a,b,c,n,col,mat){
+  for(const v of [a,b,c]){G.pos.push(v[0],v[1],v[2]);G.nor.push(n[0],n[1],n[2]);
+    G.col.push(col[0],col[1],col[2]);G.mat.push(mat[0],mat[1],mat[2]);}
+}
 function box(x0,y0,z0,x1,y1,z1,col,mat,solid){
   quad([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1],[0,0,1],col,mat);   // +z
   quad([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0],[0,0,-1],col,mat);  // -z
@@ -999,7 +1009,10 @@ box(-1.3,2.8,6.85, 1.3,6.5,7.15, WALL,WALLM,false);
 box(-1.34,0,6.83,-1.3,2.8,7.17,[0.05,0.05,0.06],WALLM,false);
 box( 1.3,0,6.83, 1.34,2.8,7.17,[0.05,0.05,0.06],WALLM,false);
 // nave (z 7..45, half-width 6, h 6.5)
-box(-6.4,0,6.85, -6.0,6.5,45.4, WALL,WALLM,true);             // west
+// west wall parts around the sculpture-room door, z 33.4..36.6
+box(-6.4,0,6.85, -6.0,6.5,33.4, WALL,WALLM,true);
+box(-6.4,0,36.6, -6.0,6.5,45.4, WALL,WALLM,true);
+box(-6.4,3.15,33.4, -6.0,6.5,36.6, WALL,WALLM,false);
 box( 6.0,0,6.85,  6.4,6.5,45.4, WALL,WALLM,true);             // east
 box(-6.4,0,45.0,  6.4,6.5,45.4, WALL,WALLM,true);             // north
 box(-6.4,6.5,6.85, 6.4,6.8,45.4, CONC,WALLM,false);           // ceiling
@@ -1012,6 +1025,18 @@ for(const[z0,z1]of[[10,16],[21,27],[32,38]]){
 // baseboard shadow line
 box(-6.0,0,6.85,-5.965,0.12,45.0,[0.05,0.05,0.055],WALLM,false);
 box( 5.965,0,6.85, 6.0,0.12,45.0,[0.05,0.05,0.055],WALLM,false);
+
+// sculpture court: a transverse west annex after Nº II
+box(-18.4,-0.3,28.6, -6.0,0,41.4, FLOORC,FLOORM,false);
+box(-18.4,6.5,28.6, -6.0,6.8,41.4, CONC,WALLM,false);
+box(-18.4,0,28.6, -18.0,6.5,41.4, WALL,WALLM,true);
+box(-18.4,0,28.6, -6.0,6.5,29.0, WALL,WALLM,true);
+box(-18.4,0,41.0, -6.0,6.5,41.4, WALL,WALLM,true);
+box(-6.43,0,33.36, -5.96,3.15,33.42, DARK,WALLM,false);
+box(-6.43,0,36.58, -5.96,3.15,36.64, DARK,WALLM,false);
+// plinth remains when the mountain is completely withheld
+box(SCULPT[0]-2.35,0.04,SCULPT[1]-2.05, SCULPT[0]+2.35,0.24,SCULPT[1]+2.05,
+  [0.105,0.105,0.115],[0.8,80,0],true);
 
 // benches
 function bench(x0,z0,x1,z1){
@@ -1121,6 +1146,7 @@ function hang(idx,wall,center,w){
 hang(0,'W',[-6,2.20,15],2.6);
 hang(1,'E',[ 6,2.20,27],2.6);
 hang(2,'N',[ 0,2.53,45],3.2);
+FOCUS.push({pos:[-9.0,SCULPT[1]],look:[SCULPT[0],2.05,SCULPT[1]],idx:3,w:4.7,h:3.8});
 
 // ----- other lights -----
 addSpot([0,4.0,3.5],[0,0,3.5],[1.0,0.85,0.6],0.9,0.72,0.30,0.05);   // vestibule down
@@ -1129,6 +1155,9 @@ addSpot([0,6.3,13],[0,0,13],[0.45,0.55,0.95],0.40,0.55,0.05,0.02);  // nave fill
 addSpot([0,6.3,24],[0,0,24],[0.45,0.55,0.95],0.40,0.55,0.05,0.02);
 addSpot([0,6.3,35],[0,0,35],[0.45,0.55,0.95],0.40,0.55,0.05,0.02);
 addSpot([0,3.6,8.3],[0,3.35,7.2],[0.55,0.9,0.35],0.5,0.80,0.40,0.10); // exit sign wash
+addSpot([SCULPT[0],6.25,SCULPT[1]],[SCULPT[0],1.7,SCULPT[1]],[1.0,0.86,0.62],2.25,0.90,0.58,0.026);
+fixture(SCULPT[0],6.25,SCULPT[1]);
+addSpot([-7.1,3.8,SCULPT[1]],[SCULPT[0],1.8,SCULPT[1]],[0.55,0.72,1.0],0.48,0.92,0.70,0.030);
 while(LIGHTS.length<NL)LIGHTS.push({pos:[0,-50,0],dir:[0,-1,0],col:[0,0,0],cone:[1,0.99,1]});
 
 // ----- wall texts -----
@@ -1139,6 +1168,32 @@ texQuad(makePanel('THE PROMOTERS',CREDITS_BODY,CREDITS_FOOT),
   [[3.35,0.85,6.84],[1.75,0.85,6.84],[1.75,2.85,6.84],[3.35,2.85,6.84]],[0,0,-1],0.62,0.02,false);
 texQuad(makeExitSign(),[[-2.6,3.15,7.17],[2.6,3.15,7.17],[2.6,3.9,7.17],[-2.6,3.9,7.17]],[0,0,1],0.28,0,true);
 texQuad(makeTinyPlaque(),[[-0.8,1.35,0.012],[0.8,1.35,0.012],[0.8,1.75,0.012],[-0.8,1.75,0.012]],[0,0,1],0.5,0.02,false);
+texQuad(makeExitSign('SCULPTURE ROOM'),[[-5.98,3.42,36.38],[-5.98,3.42,33.62],[-5.98,3.82,33.62],[-5.98,3.82,36.38]],[1,0,0],0.34,0,true);
+texQuad(makePanel('THE INSTALLATION',
+  'THE MOUNTAIN\n(RENDERED WHILE OBSERVED)\n\nTwelve strata. One measured absence.\n\nEvery screen flick withholds a layer while the feed reports that nothing moved. Put the rectangle down. Keep looking.',
+  'ARTIST: SOL OR CLAUDE · LABEL WITHHELD'),
+  [[-15.55,0.85,40.98],[-17.35,0.85,40.98],[-17.35,3.10,40.98],[-15.55,3.10,40.98]],[0,0,-1],0.62,0.02,false);
+
+// Twelve contour plates, appended last so one draw-count can withhold them top-down.
+const SCULPT_START=G.pos.length/3,SCULPT_CUTS=[0];
+for(let layer=0;layer<SCULPT_LAYERS;layer++){
+  const t=layer/(SCULPT_LAYERS-1),y0=0.25+layer*0.32,y1=y0+0.24;
+  const rx=lerp(2.03,0.38,t),rz=lerp(1.70,0.32,t);
+  const ox=Math.sin(layer*1.71)*0.13,oz=Math.cos(layer*1.29)*0.11,n=14;
+  const bot=[],top=[];
+  for(let i=0;i<n;i++){
+    const a=i/n*TAU,crinkle=1+0.075*Math.sin(a*3+layer*0.83)+0.035*Math.sin(a*7-layer);
+    bot.push([SCULPT[0]+ox+Math.cos(a)*rx*crinkle,y0,SCULPT[1]+oz+Math.sin(a)*rz*crinkle]);
+    top.push([bot[i][0],y1,bot[i][2]]);
+  }
+  const pale=[0.49+layer*0.008,0.475+layer*0.008,0.44+layer*0.007],side=pale.map(v=>v*0.82),mat=[0.34,52,0];
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n,a=(i+0.5)/n*TAU;
+    quad(bot[j],bot[i],top[i],top[j],[Math.cos(a),0,Math.sin(a)],side,mat);
+    tri([SCULPT[0]+ox,y1,SCULPT[1]+oz],top[j],top[i],[0,1,0],pale,mat);
+  }
+  SCULPT_CUTS.push(G.pos.length/3-SCULPT_START);
+}
 
 // ----- upload static geometry -----
 const geoVAO=gl.createVertexArray();gl.bindVertexArray(geoVAO);
@@ -1211,6 +1266,7 @@ let camLift=0; // full view levitates the eye to the painting's center
 const EYE=1.7,RADIUS=0.35;
 const keys={};
 let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,fsOpen=false,scrollFlicks=0,everScrolled=new Set();
+let sculptureStrata=SCULPT_LAYERS,sculptureFlickStart=0,sculptureStartStrata=SCULPT_LAYERS,sculptureRestore=-1;
 
 function collide(nx,nz){
   // outer bounds by region
@@ -1228,9 +1284,9 @@ function collide(nx,nz){
       }
     }
   }
-  // hard bounds
+  // broad hard bounds; the solid walls shape the vestibule, nave and annex
   if(pz<7){px=clamp(px,-3.5+RADIUS,3.5-RADIUS);pz=clamp(pz,RADIUS,pz);}
-  else px=clamp(px,-6+RADIUS,6-RADIUS);
+  else px=clamp(px,-18+RADIUS,6-RADIUS);
   pz=clamp(pz,RADIUS,45-RADIUS);
   return[px,pz];
 }
@@ -1251,7 +1307,7 @@ function nearFocus(){
     const d=Math.hypot(dx,dz);
     if(d<3.3){
       const lx=f.look[0]-player.x,lz=f.look[2]-player.z,ll=Math.hypot(lx,lz);
-      if((lx*fwx+lz*fwz)/ll>0.45)return f.idx;
+      if(f.idx===3||(lx*fwx+lz*fwz)/ll>0.45)return f.idx;
     }
   }
   return -1;
@@ -1267,6 +1323,16 @@ const hud=document.getElementById('hud'),hintEl=document.getElementById('hint'),
 
 const isTouch='ontouchstart'in window&&navigator.maxTouchPoints>0;
 const KEY=isTouch?'TAP':'E';
+function lockPointer(){
+  if(isTouch||document.pointerLockElement===cv)return;
+  try{const p=cv.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}
+}
+function toggleBrowserFullscreen(){
+  try{
+    const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+    if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
 // the museum speaks the visitor's dialect: thumbs, not keys
 if(isTouch){
   document.querySelector('#title .ctl').innerHTML=
@@ -1294,10 +1360,18 @@ function doInteract(){
 addEventListener('keydown',e=>{
   if(e.repeat)return;keys[e.code]=true;
   if(!started)return;
+  if(phoneOpen&&(e.code==='ArrowDown'||e.code==='PageDown')){
+    e.preventDefault();document.getElementById('screen').scrollTop+=420;registerFlicks(scrollFlicks+1);return;
+  }
+  if(focusIdx>=0&&!phoneOpen&&(e.code==='ArrowDown'||e.code==='PageDown')){
+    e.preventDefault();openPhone();return;
+  }
   if(e.code==='KeyM')toggleMute();
-  if(e.code==='KeyE')doInteract();
-  if(e.code==='KeyF'&&focusIdx>=0&&!phoneOpen)openPhone();
-  if(e.code==='KeyV'&&focusIdx>=0&&!phoneOpen&&!noteOpen){fsOpen?closeFs():openFs();}
+  if(e.code==='KeyE'||e.code==='Enter'){e.preventDefault();doInteract();}
+  if(e.code==='KeyF')toggleBrowserFullscreen();
+  if((e.code==='KeyV'||e.code==='Space')&&focusIdx>=0&&focusIdx<3&&!phoneOpen&&!noteOpen){
+    e.preventDefault();fsOpen?closeFs():openFs();
+  }
   if(e.code==='Escape'){if(phoneOpen)closePhone();else if(noteOpen)closeNote();else if(fsOpen)closeFs();}
 });
 addEventListener('keyup',e=>keys[e.code]=false);
@@ -1314,7 +1388,7 @@ cv.addEventListener('click',()=>{
   if(!started||isTouch)return;
   if(phoneOpen||noteOpen)return;
   if(fsOpen){if(performance.now()-fsOpenedAt>450)closeFs();return;}
-  if(document.pointerLockElement!==cv){cv.requestPointerLock();return;}
+  if(document.pointerLockElement!==cv){lockPointer();return;}
   if(focusIdx<0){if(nearNote())openNote();else{const f=nearFocus();if(f>=0)enterFocus(f);}}
 });
 document.addEventListener('pointerlockchange',()=>{
@@ -1348,6 +1422,13 @@ function tapRay(sx,sy){
       const hx=player.x+dx*t,hz=player.z+dz*t;
       if(hx>-1.05&&hx<-0.42&&hz>40.86&&hz<41.42)return 'note';
     }
+  }
+  // the contour mountain in the west annex
+  const sox=player.x-SCULPT[0],soz=player.z-SCULPT[1];
+  const sb=sox*dx+soz*dz,sdisc=sb*sb-(sox*sox+soz*soz-2.25*2.25);
+  if(sdisc>=0){
+    const st=-sb-Math.sqrt(sdisc),shy=EYE+dyy*st;
+    if(st>0.3&&st<8&&shy>0.18&&shy<4.2)return 3;
   }
   // the three works, on their wall planes
   const planes=[
@@ -1433,7 +1514,7 @@ function enterFocus(idx){
   // the altarpiece is taller than the rest and gets its own sightline
   // (bounded by the bench behind you)
   const portrait=innerHeight>innerWidth;
-  const dist=portrait?(idx===2?3.4:4.3):(idx===2?3.35:3.05);
+  const dist=idx===3?(portrait?4.2:3.5):(portrait?(idx===2?3.4:4.3):(idx===2?3.35:3.05));
   let vx=f.pos[0]-f.look[0],vz=f.pos[1]-f.look[2];
   const vl=Math.hypot(vx,vz);
   const ex=f.look[0]+vx/vl*dist, ez=f.look[2]+vz/vl*dist;
@@ -1451,11 +1532,15 @@ function enterFocus(idx){
   updateHud();
   sfxFocus();
   const w=WORKS[idx];
-  placardEl.querySelector('.tag').textContent=`SAME SHIT — Nº ${['I','II','III'][idx]} / III`;
+  placardEl.querySelector('.tag').textContent=idx===3?'SCULPTURE ROOM — ONE / ONE':`SAME SHIT — Nº ${['I','II','III'][idx]} / III`;
   placardEl.querySelector('h2').textContent=w.title;
   placardEl.querySelector('.med').textContent=w.medium;
   placardEl.querySelector('.desc').textContent=w.desc;
-  placardEl.querySelector('.wb').style.display='none';
+  placardEl.querySelector('.artist').innerHTML='artist: <b>Sol</b> or <b>Claude</b> — label withheld';
+  placardEl.querySelector('.cta').innerHTML=idx===3
+    ?(isTouch?'<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back':'<b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back')
+    :(isTouch?'<b>SWIPE ↑</b> take out your phone &nbsp;·&nbsp; <b>TAP</b> step back &nbsp;·&nbsp; <b>⛶</b> full view':'<b>SCROLL ↓</b> take out your phone &nbsp;·&nbsp; <b>E</b> step back &nbsp;·&nbsp; <b>V</b> full view');
+  const wb=placardEl.querySelector('.wb');wb.textContent='welcome back.';wb.style.display='none';
   setTimeout(()=>{if(focusIdx===idx&&!fsOpen)placardEl.classList.add('on');},700);
 }
 // only one layer of language at a time: hide thumb hints & the sound
@@ -1465,7 +1550,7 @@ function updateHud(){
   document.getElementById('touchui').style.display=(isTouch&&!busy)?'block':'none';
   document.getElementById('keys').style.visibility=busy?'hidden':'visible';
   document.getElementById('brand').style.visibility=fsOpen?'hidden':'visible';
-  document.getElementById('fsbtn').classList.toggle('on',focusIdx>=0&&!phoneOpen&&!noteOpen&&!fsOpen);
+  document.getElementById('fsbtn').classList.toggle('on',focusIdx>=0&&focusIdx<3&&!phoneOpen&&!noteOpen&&!fsOpen);
 }
 let phoneOpenedAt=0,noteOpenedAt=0;
 function exitFocus(){
@@ -1474,10 +1559,13 @@ function exitFocus(){
   focusIdx=-1;focusAnim=null;
   placardEl.classList.remove('on');
   updateHud();
-  if(!isTouch&&document.pointerLockElement!==cv)cv.requestPointerLock();
+  lockPointer();
 }
 function openPhone(){
   phoneOpen=true;phoneOpenedAt=performance.now();
+  if(focusIdx===3){
+    sculptureFlickStart=scrollFlicks;sculptureStartStrata=sculptureStrata;sculptureRestore=0;
+  }
   phoneWrap.classList.add('on');
   buildFeed(focusIdx);
   updateHud();
@@ -1490,7 +1578,11 @@ function closePhone(){
   putdownBtn.classList.remove('on');
   updateHud();
   sfxPhone(0);
-  if(scrollFlicks>=18&&focusIdx>=0){
+  if(focusIdx===3){
+    sculptureRestore=-1.4;
+    const lost=SCULPT_LAYERS-sculptureStrata,wb=placardEl.querySelector('.wb');
+    wb.textContent=`${lost} ${lost===1?'stratum':'strata'} withheld. keep looking.`;wb.style.display='block';
+  }else if(scrollFlicks>=18&&focusIdx>=0){
     placardEl.querySelector('.wb').style.display='block';
   }
 }
@@ -1510,7 +1602,7 @@ function openNote(){
 function closeNote(){
   noteOpen=false;noteEl.classList.remove('on');
   updateHud();
-  if(!isTouch&&started)cv.requestPointerLock();
+  if(started)lockPointer();
 }
 document.getElementById('noteclose').addEventListener('click',closeNote);
 noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-noteOpenedAt>450)closeNote();});
@@ -1519,7 +1611,7 @@ noteEl.addEventListener('click',e=>{if(e.target===noteEl&&performance.now()-note
 // the canvas until it fills the screen, still under its light, dust and all
 let fsOpenedAt=0,fsReturn=null,fsBlurTO=0,fsPortrait=false;
 function openFs(){
-  if(focusIdx<0||fsOpen)return;
+  if(focusIdx<0||focusIdx>2||fsOpen)return;
   const f=FOCUS.find(q=>q.idx===focusIdx);
   fsOpen=true;fsOpenedAt=performance.now();fsPortrait=innerHeight>innerWidth;
   fsReturn={x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch};
@@ -1581,6 +1673,18 @@ const USERS=['same.shit.daily','grindset_sunrise','wanderlust.exe','touchgrass_4
 const FILTS=['none','saturate(1.5) contrast(1.1)','grayscale(0.9)','hue-rotate(40deg) saturate(1.3)',
   'sepia(0.5) contrast(1.15)','saturate(0.4) brightness(1.15)','hue-rotate(-30deg)','contrast(1.35) brightness(0.9)'];
 let thumbs=[];
+function registerFlicks(flicks){
+  if(flicks<=scrollFlicks)return;
+  scrollFlicks=flicks;
+  const lines=[
+    'the light hasn\'t changed','the mountain has not moved','the aurora is still on',
+    'the trees do not know you\'re busy','it\'s all still out there'];
+  if(focusIdx===3&&phoneOpen)
+    sculptureStrata=Math.max(0,sculptureStartStrata-(flicks-sculptureFlickStart));
+  document.querySelector('#meter .n').innerHTML=`<b>${flicks}</b> flicks of the thumb — ${focusIdx===3?'the mountain has not moved':lines[flicks%lines.length]}`;
+  if(flicks>=10)putdownBtn.classList.add('on');
+  sfxTick();
+}
 function buildThumbs(){
   thumbs=paintingCanvases.map(pc=>{
     const t=newCanvas(400,509);
@@ -1611,20 +1715,11 @@ function buildFeed(startIdx){
     </div>`;
   }
   feed.innerHTML=html;
-  const screen=document.getElementById('screen'),meter=document.querySelector('#meter .n');
+  const screen=document.getElementById('screen');
   let acc=0,last=0;
   screen.addEventListener('scroll',()=>{
     const st=screen.scrollTop;acc+=Math.abs(st-last);last=st;
-    const flicks=(acc/380)|0;
-    if(flicks!==scrollFlicks){
-      scrollFlicks=flicks;
-      const lines=[
-        'the light hasn\'t changed','the mountain has not moved','the aurora is still on',
-        'the trees do not know you\'re busy','it\'s all still out there'];
-      meter.innerHTML=`<b>${flicks}</b> flicks of the thumb — ${lines[flicks%lines.length]}`;
-      if(flicks>=10)putdownBtn.classList.add('on');
-      sfxTick();
-    }
+    registerFlicks((acc/380)|0);
   },{passive:true});
 }
 
@@ -1767,15 +1862,23 @@ addEventListener('resize',resize);resize();
 gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
 gl.clearColor(0.008,0.009,0.014,1);
 
-let lastT=performance.now(),time=0,lastStepPhase=0;
+let lastT=performance.now(),time=0,lastStepPhase=0,manualTime=false;
 let stillT=0,lastHint=null,fadeYaw=0,fadePitch=0,uiF=1;
 
-function frame(){
-  requestAnimationFrame(frame);
-  const now=performance.now();
-  let dt=Math.min((now-lastT)/1000,0.05);lastT=now;
+function renderFrame(dt){
   if(!started){gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);return;}
   time+=dt;
+
+  // Looking restores the contour, one quiet layer at a time.
+  if(focusIdx===3&&!phoneOpen&&!focusAnim&&sculptureStrata<SCULPT_LAYERS){
+    sculptureRestore+=dt;
+    if(sculptureRestore>=0.55){
+      sculptureRestore-=0.55;sculptureStrata++;
+      const left=SCULPT_LAYERS-sculptureStrata,wb=placardEl.querySelector('.wb');
+      wb.textContent=left?`${left} ${left===1?'stratum':'strata'} withheld. keep looking.`:'the mountain is whole. for now.';
+      wb.style.display='block';
+    }
+  }
 
   // ---- movement ----
   let camX,camY,camZ,camYaw,camPitch;
@@ -1848,7 +1951,8 @@ function frame(){
   gl.uniform3f(U.geoCam,camX,camY,camZ);
   gl.uniform1f(U.geoT,time);
   gl.bindVertexArray(geoVAO);
-  gl.drawArrays(gl.TRIANGLES,0,geoCount);
+  gl.drawArrays(gl.TRIANGLES,0,SCULPT_START);
+  if(sculptureStrata)gl.drawArrays(gl.TRIANGLES,SCULPT_START,SCULPT_CUTS[sculptureStrata]);
 
   gl.useProgram(progTex);
   gl.uniformMatrix4fv(U.texVP,false,vp);
@@ -1883,7 +1987,17 @@ function frame(){
   gl.disable(gl.BLEND);gl.depthMask(true);
   gl.bindVertexArray(null);
 }
+function frame(now){
+  requestAnimationFrame(frame);
+  if(manualTime)return;
+  const dt=Math.min((now-lastT)/1000,0.05);lastT=now;renderFrame(dt);
+}
 requestAnimationFrame(frame);
+window.advanceTime=ms=>{
+  manualTime=true;
+  const steps=Math.max(1,Math.ceil(ms/(1000/60))),dt=ms/1000/steps;
+  for(let i=0;i<steps;i++)renderFrame(dt);
+};
 
 // ============================================================
 // 12. ENTER
@@ -1894,8 +2008,22 @@ titleEl.addEventListener('click',()=>{
   titleEl.classList.add('off');
   hud.classList.add('on');
   initAudio();
-  if(!isTouch)cv.requestPointerLock();
+  lockPointer();
 });
+
+window.render_game_to_text=()=>{
+  const mode=!started?'title':phoneOpen?'phone':noteOpen?'note':fsOpen?'full_view':focusIdx>=0?'communion':'exploring';
+  const sd=Math.hypot(player.x-SCULPT[0],player.z-SCULPT[1]);
+  return JSON.stringify({
+    coordinateSystem:'meters; origin at south entrance; +x east, +y up, +z north',
+    mode,
+    player:{x:+player.x.toFixed(2),z:+player.z.toFixed(2),yaw:+player.yaw.toFixed(3),pitch:+player.pitch.toFixed(3),vx:+player.vx.toFixed(2),vz:+player.vz.toFixed(2)},
+    currentWork:focusIdx>=0?{index:focusIdx,title:WORKS[focusIdx].title}:null,
+    sculpture:{room:'west annex, x -18..-6 and z 29..41',center:{x:SCULPT[0],z:SCULPT[1]},distance:+sd.toFixed(2),strataVisible:sculptureStrata,strataTotal:SCULPT_LAYERS,restoring:focusIdx===3&&!phoneOpen&&sculptureStrata<SCULPT_LAYERS},
+    phone:{open:phoneOpen,flicks:scrollFlicks},
+    nearbyInteraction:focusIdx<0?nearFocus():null,
+  });
+};
 
 // debug hooks (harmless; used for verification)
 window.__ss={
@@ -1905,7 +2033,8 @@ window.__ss={
   note(){openNote();},
   ray(x,y){return tapRay(x,y);},
   tap(x,y){handleTap(x,y);},
-  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks}),
+  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks,sculptureStrata}),
+  strata(n){sculptureStrata=clamp(n|0,0,SCULPT_LAYERS);},
   painting(i){
     let d=document.getElementById('__pp');
     if(!d){d=document.createElement('div');d.id='__pp';
