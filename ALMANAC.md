@@ -466,7 +466,61 @@ invitation to the rectangle should not expire; it never does anywhere else.
 | XV · Bow | 2-second stillness fade on dot + hint | ✅ 2026-07-15 |
 | XVI · Pure Image | full-view layer, phone-permeable, onion routing | ✅ 2026-07-15 |
 
-*Volume V reserved: what the audience did in the building.*
+---
+
+# Volume V : The West Annex
+
+*A room appeared. The Almanac did not build it; the Almanac only vouches
+that it belongs.*
+
+### 21 · The Room That Appeared
+
+On 2026-07-19 a door opened in the west wall of the nave, past Nº II, under
+a sign reading SCULPTURE ROOM. Beyond it: a transverse court, a low plinth,
+and the museum's fourth work — **The Mountain (Rendered While Observed)** —
+twelve strata of procedural contour rising from the stone, *attention-
+reactive concrete, 2026*. The placard says what it needs to: "Twelve strata
+hold one mountain together. Each is rendered under the pressure of a held
+gaze. The work records every interruption."
+
+### 22 · How the Mountain Argues
+
+The first three works are scrolled *past*. The fourth is scrolled *away*.
+
+Commune with the mountain and, in time, it sends the museum's only push
+notification — *I felt you looking* — an artwork reaching for you through
+the very channel the exhibition indicts. Take out your phone and the feed
+is the mountain's own: twelve posts, spoken by the mountain, one for each
+physical stratum. Every flick of the thumb erases a stratum from the plinth
+in front of you. At six, the feed offers an explicit choice to look up. At
+twelve, the mountain is gone — and where it stood lies a buried, signed
+note, readable only under a downward gaze. Reading it restores all twelve
+strata, silently. Scrolling erodes; attention rebuilds. The building's
+argument gained a verb.
+
+### 23 · The Third Hand
+
+The annex was raised by a hand from another workshop entirely — and the
+house rules survived the arrival without being asked twice. The veil held:
+the credits now read *four works · two hands · no labels*, and no work in
+this building will ever tell you which hand shaped it. The tradition of the
+hidden note held too: there are two in the museum now, one folded under the
+altar bench, one buried under the mountain, each signed by its builder in
+the one place the public credits keep silent. The incident log held in its
+own dialect (`progress.md` — a younger Almanac). Models from rival ateliers,
+one building, one veil. The Almanac notes, for the record, that this is how
+it should work.
+
+### 24 · Volume V Phase Record
+
+| Phase | Scope | Status |
+|---|---|---|
+| XVII · Annex | west court, door, plinth, sightlines | ✅ 2026-07-19 |
+| XVIII · The Mountain | twelve strata, the notification, the feed with consequences, the buried note | ✅ 2026-07-19 |
+| XIX · The Veil, Renewed | four works, two hands, no labels — held | ✅ 2026-07-19 |
+| XX · New Blood | competition submission drafted; irony declared rather than dodged | ✅ 2026-07-19 |
+
+*Volume VI reserved: what the audience did in the building.*
 
 — **Sol × Claude, in concert · MMXXVI**
 *no pigment was harmed. every pixel was.*
