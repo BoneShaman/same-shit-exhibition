@@ -191,16 +191,16 @@ Touch devices get thumb-zones: left walks, right looks, tap communes.
 ease to the communion point; a 41 Hz sub-swell lands with it. The placard
 rises: series tag, title in Georgia italic, medium, curator's text.
 
-**The Rectangle.** While communing, *scroll down* — the learned gesture, the
-whole point — and a phone rises over the painting. Inside: **scrollr∞**, a
-feed of the very exhibition, reposted forever. The three works cycle under
-eight filters with captions: *same shit fr · same shit (hd remaster) · day
-847 of same shit.* Interstitials know where you are standing ("you are 0.9
-meters from the real thing"). A meter counts: **N flicks of the thumb — the
-mountain has not moved.** At ten flicks, an acid button surfaces: **PUT IT
-DOWN.** The feed does end: *"no more posts. (there were never more posts.)
-the painting is still there."* If you scrolled long enough, the placard
-whispers *welcome back.*
+**The Rectangle.** While communing with a painting, *scroll down* — the learned
+gesture, the whole point — and **scrollr∞** reposts the exhibition forever
+under filters, captions, and location-aware interstitials. The sculpture
+hijacks the same phone after first contacting the visitor itself. Its feed is
+twelve sparse posts spoken by the mountain, one per physical stratum: the
+image is weightless; the machine is not; mountains are opened for materials
+so machines can generate mountains. Every measured flick turns one layer into
+content. At six, **LOOK UP** offers an exit. At twelve, nothing remains except
+the builder's folded note beneath the work. The mountain will not restore over
+that paper; after it is read, sustained attention returns every stratum.
 
 **The Exit.** The south-facing wall above the door: `LOOK UP MORE OFTEN.`
 And in the vestibule, a small etched plaque:

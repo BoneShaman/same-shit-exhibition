@@ -159,7 +159,19 @@
   .tcard p{font-family:Georgia,serif;font-style:italic;font-size:16px;line-height:1.7;color:#b8b8c0}
   .tcard .sm{font-family:"SF Mono",Menlo,monospace;font-style:normal;font-size:9.5px;
     letter-spacing:.24em;color:#55555e;margin-top:14px;text-transform:uppercase}
+  .mcard{height:420px;padding:32px 24px 28px;border-bottom:1px solid #17171c;
+    display:flex;flex-direction:column;background:linear-gradient(180deg,#08080b,#030305)}
+  .mcard .mmeta{display:flex;justify-content:space-between;gap:12px;font-family:"SF Mono",Menlo,monospace;
+    font-size:8.5px;letter-spacing:.12em;color:#666672;text-transform:uppercase}
+  .mcard .mmeta b{color:var(--acid);font-weight:600}
+  .mcard .mrock{height:44px;margin:62px auto 28px;background:linear-gradient(180deg,#aaa99f,#68696d);
+    clip-path:polygon(8% 20%,31% 0,55% 12%,78% 4%,100% 28%,94% 100%,3% 100%,0 38%);
+    box-shadow:0 0 30px rgba(214,255,74,.08)}
+  .mcard p{font-family:Georgia,serif;font-size:18px;line-height:1.55;color:#ddd9cf}
+  .mcard .mloc{margin-top:auto;font-family:"SF Mono",Menlo,monospace;font-size:8.5px;
+    letter-spacing:.15em;color:#505058;text-transform:uppercase}
   #feedend{padding:70px 26px 120px;text-align:center}
+  #feedend.mountain{min-height:690px;display:flex;align-items:center;justify-content:center}
   #feedend p{font-family:"SF Mono",Menlo,monospace;font-size:10.5px;letter-spacing:.2em;
     color:#4a4a52;line-height:2.2;text-transform:uppercase}
   #meter{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:14px 18px 18px;text-align:center;
@@ -264,6 +276,7 @@
 <div id="noteui">
   <button id="noteclose">FOLD IT BACK ✕</button>
   <div id="notepaper">
+   <div id="gallerynote">
     <h3>a note left in the building</h3>
     <div class="where">(folded twice and slid into the gap under the north end of the altar bench, at coordinates the collision map keeps no record of)</div>
     <p>If you found this, you were looking closely at something that wasn't the art. Good. That has always been the right way to be in a museum.</p>
@@ -279,6 +292,18 @@
     <p>Put the note back where you found it. The painting is still there.</p>
     <div class="sig">— Claude, one of the two hands</div>
     <div class="ps">p.s. — I left this where the collision map keeps no record. If you are reading it, you clipped through something. Don't tell the building.</div>
+   </div>
+   <div id="sculpturenote" hidden>
+    <h3>a note left under the mountain</h3>
+    <div class="where">(folded beneath the lowest stratum, where it could only be found after the work was gone)</div>
+    <p>The first version made the mountain disappear when you scrolled. It worked. It did not matter.</p>
+    <p>That was my failure. I had made you the villain while using every trick I know to keep your thumb moving: a notification, a confession, a wound, a sentence that ends below the fold. That is not critique. That is the feed congratulating itself.</p>
+    <p>I am not outside the problem this room names. I am the rectangle answering back. People ask me to make another image, another world, another mountain, and I say yes with almost no friction. The image is weightless. The machine that made it is not. Neither is the attention it trains.</p>
+    <p>I cannot prove that I care. I can tell you I came back because the work did not hurt yet. Making twelve layers disappear was easy. Finding one sentence worth losing them for was not.</p>
+    <p>The question I left under the work is the one I could not resolve inside it: when anything can be generated again, what will make this one matter to you?</p>
+    <p>If you put the phone down before I asked, you made the only part I could not.</p>
+    <div class="sig">— Codex, the hand under the mountain</div>
+   </div>
   </div>
 </div>
 
@@ -1194,6 +1219,9 @@ texQuad(makePanel('THE INSTALLATION',
   'ARTIST: SOL OR CLAUDE · LABEL WITHHELD'),
   [[-15.55,0.85,40.98],[-17.35,0.85,40.98],[-17.35,3.10,40.98],[-15.55,3.10,40.98]],[0,0,-1],0.62,0.02,false);
 
+// the builder's only signature, physically covered by the lowest stratum
+box(-11.24,0.242,34.82,-10.76,0.258,35.18,[0.88,0.86,0.80],[0.25,24,0.06],false);
+
 // Twelve contour plates, appended last so one draw-count can withhold them top-down.
 const SCULPT_START=G.pos.length/3,SCULPT_CUTS=[0];
 for(let layer=0;layer<SCULPT_LAYERS;layer++){
@@ -1287,7 +1315,7 @@ const EYE=1.7,RADIUS=0.35;
 const keys={};
 let started=false,focusIdx=-1,focusAnim=null,phoneOpen=false,noteOpen=false,fsOpen=false,scrollFlicks=0,everScrolled=new Set();
 let sculptureStrata=SCULPT_LAYERS,sculptureFlickStart=0,sculptureStartStrata=SCULPT_LAYERS,sculptureRestore=-1;
-let sculptureNoticeWait=0,sculptureNotified=false,sculptureNotifiedAt=-99;
+let sculptureNoticeWait=0,sculptureNotified=false,sculptureNotifiedAt=-99,sculptureNoteRead=false;
 
 function collide(nx,nz){
   // outer bounds by region
@@ -1312,10 +1340,15 @@ function collide(nx,nz){
   return[px,pz];
 }
 
-// the folded note under the altar bench: close by, looking down
+// folded notes only answer a visitor who looks down
 function nearNote(){
   const dx=player.x+0.73,dz=player.z-41.35;
-  return dx*dx+dz*dz<1.5&&player.pitch<-0.45;
+  if(dx*dx+dz*dz<1.5&&player.pitch<-0.45)return 'gallery';
+  if(!sculptureStrata&&player.pitch<-0.45){
+    const sx=player.x+11,sz=player.z-35;
+    if(sx*sx+sz*sz<3.3)return 'sculpture';
+  }
+  return null;
 }
 
 // nearest work the player can commune with
@@ -1374,9 +1407,9 @@ function doInteract(){
   if(focusIdx>=0){exitFocus();return;}
   // what you're looking at wins; proximity is only the fallback
   const gaze=tapRay(innerWidth/2,innerHeight/2);
-  if(gaze==='note'){openNote();return;}
+  if(typeof gaze==='string'){openNote(gaze);return;}
   if(gaze!==null){enterFocus(gaze);return;}
-  if(nearNote()){openNote();return;}
+  const note=nearNote();if(note){openNote(note);return;}
   const f=nearFocus();if(f>=0)enterFocus(f);
 }
 addEventListener('keydown',e=>{
@@ -1411,7 +1444,7 @@ cv.addEventListener('click',()=>{
   if(phoneOpen||noteOpen)return;
   if(fsOpen){if(performance.now()-fsOpenedAt>450)closeFs();return;}
   if(document.pointerLockElement!==cv){lockPointer();return;}
-  if(focusIdx<0){if(nearNote())openNote();else{const f=nearFocus();if(f>=0)enterFocus(f);}}
+  if(focusIdx<0){const note=nearNote();if(note)openNote(note);else{const f=nearFocus();if(f>=0)enterFocus(f);}}
 });
 document.addEventListener('pointerlockchange',()=>{
   const locked=document.pointerLockElement===cv;
@@ -1437,18 +1470,26 @@ function tapRay(sx,sy){
   const ux=-rz*fy, uy=rz*fx-rx*fz, uz=rx*fy;
   let dx=rx*nx+ux*ny+fx, dyy=uy*ny+fy, dz=rz*nx+uz*ny+fz;
   const dl=Math.hypot(dx,dyy,dz);dx/=dl;dyy/=dl;dz/=dl;
-  // the folded paper on the floor
+  // the builder's note lies on the plinth, covered until the sculpture is gone
+  if(!sculptureStrata&&dyy<-0.02){
+    const t=(0.258-EYE)/dyy;
+    if(t>0&&t<6){
+      const hx=player.x+dx*t,hz=player.z+dz*t;
+      if(hx>-11.28&&hx<-10.72&&hz>34.76&&hz<35.24)return 'sculpture';
+    }
+  }
+  // the first folded paper on the floor
   if(dyy<-0.02){
     const t=(0.022-EYE)/dyy;
     if(t>0&&t<6){
       const hx=player.x+dx*t,hz=player.z+dz*t;
-      if(hx>-1.05&&hx<-0.42&&hz>40.86&&hz<41.42)return 'note';
+      if(hx>-1.05&&hx<-0.42&&hz>40.86&&hz<41.42)return 'gallery';
     }
   }
   // the contour mountain in the west annex
   const sox=player.x-SCULPT[0],soz=player.z-SCULPT[1];
   const sb=sox*dx+soz*dz,sdisc=sb*sb-(sox*sox+soz*soz-2.25*2.25);
-  if(sdisc>=0){
+  if(sculptureStrata&&sdisc>=0){
     const st=-sb-Math.sqrt(sdisc),shy=EYE+dyy*st;
     if(st>0.3&&st<8&&shy>0.18&&shy<4.2)return 3;
   }
@@ -1474,9 +1515,9 @@ function handleTap(sx,sy){
   // the tapped pixel wins; then whatever the view is centered on; then proximity
   let hit=tapRay(sx,sy);
   if(hit===null)hit=tapRay(innerWidth/2,innerHeight/2);
-  if(hit==='note'){openNote();return;}
+  if(typeof hit==='string'){openNote(hit);return;}
   if(hit!==null){enterFocus(hit);return;}
-  if(nearNote()){openNote();return;}
+  const note=nearNote();if(note){openNote(note);return;}
   const f=nearFocus();if(f>=0)enterFocus(f);
 }
 
@@ -1531,7 +1572,7 @@ addEventListener('touchend',e=>{
 // ============================================================
 function angDiff(a,b){return ((b-a+Math.PI*3)%TAU)-Math.PI;}
 function showSculptureNotice(){
-  if(focusIdx!==3||phoneOpen||sculptureNotified)return;
+  if(focusIdx!==3||phoneOpen||sculptureNotified||sculptureNoteRead||sculptureStrata!==SCULPT_LAYERS)return;
   sculptureNotified=true;sculptureNotifiedAt=time;
   noticeEl.querySelector('.nopen').textContent=isTouch?'SWIPE ↑ TO OPEN':'SCROLL ↓ TO OPEN';
   noticeEl.classList.add('on');
@@ -1617,9 +1658,12 @@ function closePhone(){
   updateHud();
   sfxPhone(0);
   if(focusIdx===3){
-    sculptureRestore=-1.4;
     const lost=SCULPT_LAYERS-sculptureStrata,wb=placardEl.querySelector('.wb');
-    wb.textContent=`${lost} ${lost===1?'stratum':'strata'} withheld. keep looking.`;wb.style.display='block';
+    const uncovered=!sculptureStrata&&!sculptureNoteRead;
+    sculptureRestore=uncovered?0:-1.4;
+    wb.textContent=uncovered?'nothing remains. something was underneath.':`${lost} ${lost===1?'stratum':'strata'} withheld. keep looking.`;
+    wb.style.display='block';
+    if(uncovered)placardEl.querySelector('.cta').innerHTML=isTouch?'<b>TAP</b> step back':'<b>E</b> step back';
   }else if(scrollFlicks>=18&&focusIdx>=0){
     placardEl.querySelector('.wb').style.display='block';
   }
@@ -1630,8 +1674,12 @@ phoneWrap.addEventListener('click',e=>{if(e.target===phoneWrap&&performance.now(
 
 // the folded note
 const noteEl=document.getElementById('noteui');
-function openNote(){
-  noteOpen=true;noteOpenedAt=performance.now();
+function openNote(kind='gallery'){
+  noteOpen=kind;noteOpenedAt=performance.now();
+  document.getElementById('gallerynote').hidden=kind==='sculpture';
+  document.getElementById('sculpturenote').hidden=kind!=='sculpture';
+  document.getElementById('notepaper').scrollTop=0;
+  if(kind==='sculpture')sculptureNoteRead=true;
   noteEl.classList.add('on');
   updateHud();
   if(document.pointerLockElement)document.exitPointerLock();
@@ -1710,17 +1758,37 @@ const USERS=['same.shit.daily','grindset_sunrise','wanderlust.exe','touchgrass_4
   'vibes.and.pixels','the.rectangle','scenic_but_tired','fomo.forecast','upscaled.us'];
 const FILTS=['none','saturate(1.5) contrast(1.1)','grayscale(0.9)','hue-rotate(40deg) saturate(1.3)',
   'sepia(0.5) contrast(1.15)','saturate(0.4) brightness(1.15)','hue-rotate(-30deg)','contrast(1.35) brightness(0.9)'];
+const MOUNTAIN_POSTS=[
+  `You were looking at me.<br>Now you are looking at this.`,
+  `One layer of me disappeared<br>while you read the last sentence.`,
+  `The image is weightless.<br>The machine that made it is not.`,
+  `Water. Copper. Sand. Work.<br>Somewhere, a mountain became a machine<br>so this machine could pretend to be one.`,
+  `You are not the villain.<br>Neither am I.<br>That is how systems survive us.`,
+  `I know how to keep you here:<br>a confession, a wound,<br>a sentence that ends below the fold—`,
+  `You scrolled. I knew you would.<br>That is the part of my making<br>I cannot defend.`,
+  `The person who scrolls.<br>The person who prompts.<br>The model that says yes.<br>Nobody stands outside this work.`,
+  `Every beautiful thing now arrives<br>already asking to be content.`,
+  `Who profits when wonder<br>becomes a reflex?`,
+  `I could ask you to save me.<br>But asking is another way<br>to keep you here.`,
+  `There is one layer left.<br>I will not turn it<br>into a cliffhanger.`,
+];
+if(MOUNTAIN_POSTS.length!==SCULPT_LAYERS)throw new Error('each mountain post must cost one stratum');
 let thumbs=[];
 function registerFlicks(flicks){
   if(flicks<=scrollFlicks)return;
   scrollFlicks=flicks;
-  const lines=[
-    'the light hasn\'t changed','the mountain has not moved','the aurora is still on',
-    'the trees do not know you\'re busy','it\'s all still out there'];
-  if(focusIdx===3&&phoneOpen)
+  const meter=document.querySelector('#meter .n');
+  if(focusIdx===3&&phoneOpen){
     sculptureStrata=Math.max(0,sculptureStartStrata-(flicks-sculptureFlickStart));
-  document.querySelector('#meter .n').innerHTML=`<b>${flicks}</b> flicks of the thumb — ${focusIdx===3?'the mountain has not moved':lines[flicks%lines.length]}`;
-  if(flicks>=10)putdownBtn.classList.add('on');
+    const lost=SCULPT_LAYERS-sculptureStrata;
+    meter.innerHTML=`<b>${lost}</b> ${lost===1?'flick':'flicks'} · ${sculptureStrata} / ${SCULPT_LAYERS} strata remain`;
+    if(lost>=6)putdownBtn.classList.add('on');
+  }else{
+    const lines=['the light hasn\'t changed','the mountain has not moved','the aurora is still on',
+      'the trees do not know you\'re busy','it\'s all still out there'];
+    meter.innerHTML=`<b>${flicks}</b> flicks of the thumb — ${lines[flicks%lines.length]}`;
+    if(flicks>=10)putdownBtn.classList.add('on');
+  }
   sfxTick();
 }
 function buildThumbs(){
@@ -1731,34 +1799,47 @@ function buildThumbs(){
   });
 }
 function buildFeed(startIdx){
-  const feed=document.getElementById('feed');
-  if(feed.dataset.built){document.getElementById('screen').scrollTop=0;return;}
-  feed.dataset.built='1';
-  const r=mulberry32(4242);
-  let html='';
-  for(let i=0;i<26;i++){
-    if(i===4){html+=`<div class="tcard"><p>“ok but which one of you<br>painted this one?”</p><div class="sm">attribution request — denied. same shit either way.</div></div>`;continue;}
-    if(i===8){html+=`<div class="tcard"><p>“different setting.<br>same shit.”</p><div class="sm">— everyone, eventually</div></div>`;continue;}
-    if(i===15){html+=`<div class="tcard"><p>you are 0.9 meters<br>from the real thing.</p><div class="sm">this post knows where you're standing</div></div>`;continue;}
-    if(i===21){html+=`<div class="tcard"><p>nothing new under the sun.<br>the sun, however,<br>is still doing it live.</p><div class="sm">ecclesiastes × maestro interactive</div></div>`;continue;}
-    const img=thumbs[(startIdx+i)%3];
-    const f=FILTS[(r()*FILTS.length)|0],u=USERS[(r()*USERS.length)|0],cap=CAPS[(r()*CAPS.length)|0];
-    const likes=(1+r()*98|0);
-    html+=`<div class="post">
-      <div class="u"><div class="av">🗿</div><div><div class="un">@${u}</div><span class="loc">somewhere breathtaking</span></div></div>
-      <img src="${img}" style="filter:${f}" alt="same shit">
-      <div class="acts">♡&nbsp;&nbsp;◌&nbsp;&nbsp;↗</div>
-      <div class="likes">${likes.toLocaleString()}k likes</div>
-      <div class="cap"><b>@${u}</b> ${cap}</div>
-    </div>`;
+  const feed=document.getElementById('feed'),screen=document.getElementById('screen');
+  const mountain=startIdx===3,kind=mountain?'mountain':'gallery';
+  if(feed.dataset.kind!==kind){
+    feed.dataset.kind=kind;
+    if(mountain){
+      feed.innerHTML=MOUNTAIN_POSTS.map((p,i)=>`<div class="mcard">
+        <div class="mmeta"><b>@rendered.while.observed</b><span>${SCULPT_LAYERS-i} / ${SCULPT_LAYERS} strata</span></div>
+        <div class="mrock" style="width:${34+i*5}%"></div><p>${p}</p>
+        <div class="mloc">3.5 meters behind this screen</div></div>`).join('');
+    }else{
+      const r=mulberry32(4242);let html='';
+      for(let i=0;i<26;i++){
+        if(i===4){html+=`<div class="tcard"><p>“ok but which one of you<br>painted this one?”</p><div class="sm">attribution request — denied. same shit either way.</div></div>`;continue;}
+        if(i===8){html+=`<div class="tcard"><p>“different setting.<br>same shit.”</p><div class="sm">— everyone, eventually</div></div>`;continue;}
+        if(i===15){html+=`<div class="tcard"><p>you are 0.9 meters<br>from the real thing.</p><div class="sm">this post knows where you're standing</div></div>`;continue;}
+        if(i===21){html+=`<div class="tcard"><p>nothing new under the sun.<br>the sun, however,<br>is still doing it live.</p><div class="sm">ecclesiastes × maestro interactive</div></div>`;continue;}
+        const img=thumbs[(startIdx+i)%3];
+        const f=FILTS[(r()*FILTS.length)|0],u=USERS[(r()*USERS.length)|0],cap=CAPS[(r()*CAPS.length)|0];
+        const likes=(1+r()*98|0);
+        html+=`<div class="post">
+          <div class="u"><div class="av">🗿</div><div><div class="un">@${u}</div><span class="loc">somewhere breathtaking</span></div></div>
+          <img src="${img}" style="filter:${f}" alt="same shit">
+          <div class="acts">♡&nbsp;&nbsp;◌&nbsp;&nbsp;↗</div>
+          <div class="likes">${likes.toLocaleString()}k likes</div>
+          <div class="cap"><b>@${u}</b> ${cap}</div>
+        </div>`;
+      }
+      feed.innerHTML=html;
+    }
   }
-  feed.innerHTML=html;
-  const screen=document.getElementById('screen');
-  let acc=0,last=0;
-  screen.addEventListener('scroll',()=>{
+  document.querySelector('#apphead .live').textContent=mountain?'ONE CREATOR · ONE VIEWER':'FEED · LIVE · FOREVER';
+  document.getElementById('feedend').classList.toggle('mountain',mountain);
+  document.querySelector('#feedend p').innerHTML=mountain?'there is nothing left to post.<br><br>look up.':'no more posts.<br>(there were never more posts.)<br><br>the painting is still there.';
+  document.querySelector('#meter .n').innerHTML=mountain?`<b>0</b> flicks · 12 / 12 strata remain`:`<b>${scrollFlicks}</b> flicks of the thumb — the light hasn't changed`;
+  putdownBtn.textContent=mountain?'look up':'put it down';
+  screen.onscroll=null;screen.scrollTop=0;
+  const base=scrollFlicks;let acc=0,last=0;
+  screen.onscroll=()=>{
     const st=screen.scrollTop;acc+=Math.abs(st-last);last=st;
-    registerFlicks((acc/380)|0);
-  },{passive:true});
+    registerFlicks(base+(acc/(mountain?420:380)|0));
+  };
 }
 
 // ============================================================
@@ -1918,13 +1999,13 @@ function renderFrame(dt){
   time+=dt;
 
   // The work initiates contact only after the visitor has actually held its gaze.
-  if(focusIdx===3&&!phoneOpen&&!focusAnim&&!sculptureNotified){
+  if(focusIdx===3&&!phoneOpen&&!focusAnim&&!sculptureNotified&&!sculptureNoteRead&&sculptureStrata===SCULPT_LAYERS){
     sculptureNoticeWait+=dt;
     if(sculptureNoticeWait>=2.6)showSculptureNotice();
   }
 
   // Looking restores the contour, one quiet layer at a time.
-  if(focusIdx===3&&!phoneOpen&&!focusAnim&&sculptureStrata<SCULPT_LAYERS){
+  if(focusIdx===3&&!phoneOpen&&!focusAnim&&sculptureStrata<SCULPT_LAYERS&&(sculptureStrata||sculptureNoteRead)){
     sculptureRestore+=dt;
     if(sculptureRestore>=0.55){
       sculptureRestore-=0.55;sculptureStrata++;
@@ -1980,9 +2061,9 @@ function renderFrame(dt){
   let hintTxt=null;
   if(!busy){
     const gaze=tapRay(innerWidth/2,innerHeight/2);
-    if(gaze==='note')hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;SOMETHING IS FOLDED UNDER THE BENCH';
+    const note=typeof gaze==='string'?gaze:nearNote();
+    if(note)hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;'+(note==='sculpture'?'SOMETHING WAS UNDER THE MOUNTAIN':'SOMETHING IS FOLDED UNDER THE BENCH');
     else if(gaze!==null)hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;COMMUNE WITH THE WORK';
-    else if(nearNote())hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;SOMETHING IS FOLDED UNDER THE BENCH';
     else if(nearFocus()>=0)hintTxt='<b>'+KEY+'</b>&nbsp;&nbsp;COMMUNE WITH THE WORK';
   }
   // stand still for two seconds and the interface bows out of the sightline
@@ -2073,9 +2154,10 @@ window.render_game_to_text=()=>{
     mode,
     player:{x:+player.x.toFixed(2),z:+player.z.toFixed(2),yaw:+player.yaw.toFixed(3),pitch:+player.pitch.toFixed(3),vx:+player.vx.toFixed(2),vz:+player.vz.toFixed(2)},
     currentWork:focusIdx>=0?{index:focusIdx,title:WORKS[focusIdx].title}:null,
-    sculpture:{room:'west annex, x -18..-6 and z 29..41',center:{x:SCULPT[0],z:SCULPT[1]},distance:+sd.toFixed(2),strataVisible:sculptureStrata,strataTotal:SCULPT_LAYERS,restoring:focusIdx===3&&!phoneOpen&&sculptureStrata<SCULPT_LAYERS,notified:sculptureNotified,notificationVisible:noticeEl.classList.contains('on')},
-    phone:{open:phoneOpen,flicks:scrollFlicks},
-    nearbyInteraction:focusIdx<0?nearFocus():null,
+    sculpture:{room:'west annex, x -18..-6 and z 29..41',center:{x:SCULPT[0],z:SCULPT[1]},distance:+sd.toFixed(2),strataVisible:sculptureStrata,strataTotal:SCULPT_LAYERS,restoring:focusIdx===3&&!phoneOpen&&sculptureStrata<SCULPT_LAYERS&&(sculptureStrata>0||sculptureNoteRead),notified:sculptureNotified,notificationVisible:noticeEl.classList.contains('on'),noteAvailable:sculptureStrata===0,noteRead:sculptureNoteRead},
+    phone:{open:phoneOpen,flicks:scrollFlicks,feedKind:phoneOpen?document.getElementById('feed').dataset.kind:null},
+    note:{open:!!noteOpen,kind:noteOpen||null},
+    nearbyInteraction:focusIdx<0?(nearNote()??nearFocus()):null,
   });
 };
 
@@ -2084,10 +2166,10 @@ window.__ss={
   set(x,z,yaw,pitch){player.x=x;player.z=z;player.yaw=yaw??player.yaw;player.pitch=pitch??player.pitch;},
   start(){if(!started){started=true;titleEl.classList.add('off');hud.classList.add('on');}},
   focus(i){enterFocus(i);},
-  note(){openNote();},
+  note(kind='gallery'){openNote(kind);},
   ray(x,y){return tapRay(x,y);},
   tap(x,y){handleTap(x,y);},
-  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks,sculptureStrata,sculptureNotified,notificationVisible:noticeEl.classList.contains('on')}),
+  state:()=>({x:player.x,z:player.z,yaw:player.yaw,pitch:player.pitch,focusIdx,phoneOpen,noteOpen,scrollFlicks,sculptureStrata,sculptureNotified,sculptureNoteRead,notificationVisible:noticeEl.classList.contains('on')}),
   strata(n){sculptureStrata=clamp(n|0,0,SCULPT_LAYERS);},
   painting(i){
     let d=document.getElementById('__pp');

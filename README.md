@@ -30,9 +30,11 @@ Walk slowly. Look up. You're here now.
 ## The sculpture court
 
 **The Mountain (Rendered While Observed)** is twelve procedural contour
-strata under one light. Commune with it and take out your phone: each measured
-flick withholds a physical layer while the feed insists the mountain has not
-moved. Put the rectangle down and keep looking. Attention restores the work.
+strata under one light. After it contacts you, the phone becomes the mountain's
+private twelve-post account. Each post converts one physical layer into content;
+halfway through, the visitor is offered a choice to look up. Erase all twelve
+and the builder's folded note is uncovered beneath the work. Read it, return,
+and attention restores the mountain.
 
 ## OpenAI Build Week
 
@@ -40,8 +42,8 @@ Built for the [OpenAI Build Week Challenge](https://openai.com/build-week/)
 with Codex and GPT-5.6 across architecture, procedural geometry, interaction,
 accessibility, and verification. Individual model contributions remain
 deliberately unassigned inside the exhibition. The attribution veil is part
-of the work; the only model allowed to identify itself does so in a hidden
-note.
+of the work; models may identify themselves only inside the hidden notes they
+leave behind.
 
 ## Running locally
 
